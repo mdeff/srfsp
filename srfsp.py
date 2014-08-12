@@ -109,10 +109,11 @@ def myoglobin():
 ###  Parameters  ###
 
 
-dataset       = 'myoglobin'   # Dataset: artificial, calmix or myoglobin
-maxit         = 50            # Maximum number of iterations
+dataset       = 'calmix'      # Dataset: artificial, calmix or myoglobin
+maxit1        = 50            # Maximum number of iterations for sparse coding
+maxit2        = 20            #                                  regression
 tol           = 10e-10        # Tolerance to stop iterating
-do_regression = False         # Do a linear regression as a second step
+do_regression = True          # Do a linear regression as a second step
 prior_weight  = 1             # Weight of the prior term. Data fidelity has 1.
 
 
@@ -133,7 +134,7 @@ yf = np.fft.rfft(y)
 sf = np.fft.rfft(s)
 
 
-###  Problem 1 : find peaks  ###
+###  Problem 1 : Sparse coding  ###
 
 
 # Data fidelity term
@@ -150,16 +151,50 @@ solver = pyunlocbox.solvers.douglas_rachford(step=np.max(np.abs(yf)))
 
 # Solve the problem
 x0 = np.zeros(np.shape(yf))
-ret = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit, verbosity='LOW')
-
+ret = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit1,
+                               verbosity='LOW')
 sol1 = ret['sol']
 
-# Non-zero terms --> indices of the diracs
-ind = np.abs(sol1) != 0.
-print('Number of non-zero coefficients : %d' % (np.sum(ind),))
+# Non-zero values indicate peaks
+ind1 = np.abs(sol1) != 0.
+print('Number of non-zero coefficients : %d' % (np.sum(ind1),))
 
 
-###  Problem 2 : find amplitudes  ###
+###  Problem 2 : Group peak aggregates into diracs  ###
+
+
+# As the solution is sparse, the peaks are separated by zeros. We group
+# together individual chunks of non-zero bins.
+
+# Transitions from non-peak to peak
+# ind[0:-1] 0 0 1 1 1 1 0 0
+# ind[1:]   0 1 1 1 1 0 0 0
+# trans     0 1 0 0 0 1 0 0
+trans = ind1[0:-1] != ind1[1:]
+
+# Indices of transitions : starts and ends
+nz = np.nonzero(trans)[0]
+starts = nz[0::2]
+ends = nz[1::2]
+
+Npeaks = np.sum(trans) / 2.
+
+# Non-zero values indicate peaks
+ind2 = np.zeros(np.shape(ind1))
+
+# Find the maximum of each peak aggregate
+for k in range(int(Npeaks)):
+    idx = np.argmax(sol1[starts[k]:ends[k]])
+    idx += starts[k]
+    ind2[idx] = 1
+
+if not len(starts) == len(ends) == np.sum(ind2) == Npeaks:
+    raise Exception('Peaks grouping failed')
+
+print('Number of non-zero coefficients : %d' % (Npeaks,))
+
+
+###  Problem 3 : Find amplitudes  ###
 
 
 # Now that we have the indices of the diracs, we can force the other
@@ -185,20 +220,20 @@ if do_regression:
     # operator is a projection on the constraint set.
     f2 = pyunlocbox.functions.func()
     f2._eval = lambda x: 0
-    f2._prox = lambda x, T: ind * x
+    f2._prox = lambda x, T: ind2 * x
 
     # Start from zero or last solution
     x0 = np.zeros(np.shape(yf))
     #x0 = sol1
 
     # Solve the problem
-    ret = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=20,
-                                   verbosity='LOW')
+    ret = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol,
+                                   maxit=maxit2, verbosity='LOW')
     sol2 = ret['sol']
 
-    # Non-zero terms --> indices of the diracs
+    # Non-zero values indicate peaks
     ind = np.abs(sol2)
-    print('Number of non-zero coefficients : %d' % (np.sum(ind > 1.),))
+    print('Number of non-zero coefficients : %d' % (np.sum(ind2 > 1.),))
 
 
 ###  Results  ###
