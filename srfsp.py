@@ -29,13 +29,16 @@ def plotfftreal(s, fs, xlim=None, amp='abs'):
     plt.xlabel('Frequency [Hz]')
     plt.ylabel('Amplitude (%s)' % (amp,))
 
+    # Force axis numbers to be printed in scientific notation
+    plt.ticklabel_format(style='sci', scilimits=(3,3), axis='both')
+
     if xlim:
         plt.xlim(xlim)
 
 
-def plot(sf, yf, sol1, sol2, fs, xlim=None):
+def plot(sf, yf, sol1, sol2, fs, xlim=None, filename=None):
 
-    plt.figure()
+    plt.figure(figsize=(20,10), dpi=200)
 
     plt.subplot(2,3,1)
     plotfftreal(sf, fs, xlim)
@@ -68,6 +71,10 @@ def plot(sf, yf, sol1, sol2, fs, xlim=None):
         plt.subplot(2,3,6)
         plotfftreal(sol1['sol'], fs, xlim, amp='imag')
         plt.title('Imaginary part')
+
+    if filename:
+        plt.savefig(filename + '.png')
+#        plt.savefig(filename + '.pdf')
 
 
 def artificial():
@@ -272,10 +279,11 @@ else:
     sol2 = None
 
 
-###  Results  ###
+###  Show results  ###
+
 
 # Full view
-plot(sf, yf, sol1, sol2, fs)
+plot(sf, yf, sol1, sol2, fs, filename=dataset+'_full')
 
 # Partially zoomed view
 if dataset is 'calmix':
@@ -285,7 +293,7 @@ elif dataset is 'myoglobin':
 else:
     xlim = None
 if xlim:
-    plot(sf, yf, sol1, sol2, fs, xlim)
+    plot(sf, yf, sol1, sol2, fs, xlim, dataset+'_zoom1')
 
 # Completely zoomed view
 if dataset is 'calmix':
@@ -293,6 +301,6 @@ if dataset is 'calmix':
 else:
     xlim = None
 if xlim:
-    plot(sf, yf, sol1, sol2, fs, xlim)
+    plot(sf, yf, sol1, sol2, fs, xlim, dataset+'_zoom2')
 
-plt.show()
+#plt.show()
