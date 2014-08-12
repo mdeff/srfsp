@@ -4,54 +4,61 @@ import pyunlocbox
 from tools import plotfftreal
 
 
+def artificial_signal():
+    """
+    Artificial signal composed by a sum of sine waves.
+    """
+
+    Ns = 5                  # Number of sines
+    Amin = 1                # Minimum/Maximum amplitude for the sine
+    Amax = 2
+    fs = 1000               # Sampling frequency
+    T = 5                   # Sampling / Measurement time
+    Ttot = 100              # Total time
+    sigma = 1.0             # Noise level
+
+    Nmes = fs * T           # Number of measured samples
+    Ntot = fs * Ttot        # Total number of samples
+
+    # We want our estimation to be close to the measures up to the noise level.
+    # y = x + epsilon  -->  || Ax - y ||_2 <= || epsilon ||_2
+    # Var(eps) = E(eps^2) - E(eps)^2
+    # E( ||eps||_2 ) = sqrt( E( ||eps||_2^2 )) = sqrt( sum( E( eps_i^2 ))) = sqrt( N*Var(eps))
+    # 1.1 is meant to leave some room.
+    epsilon = 1.1 * np.sqrt(Nmes) * sigma  # Radius of the B2-ball
+
+    s = np.zeros(Ntot)
+
+    # Create the sinusoids
+    for k in range(Ns):
+        f = np.round(np.random.uniform()*Ntot) / Ntot
+        amp = Amin + np.random.uniform() * (Amax-Amin)
+        s += amp * np.sin( 2 * np.pi * f * np.arange(Ntot))
+
+    # Add noise
+    sn = s + sigma * np.random.normal()
+
+    return sn, fs, Ntot, Nmes, epsilon
+
+
 ###  Parameters  ###
 
 
-Ns = 5                  # Number of sines
-Amin = 1                # Minimum/Maximum amplitude for the sine
-Amax = 2
-fs = 1000               # Sampling frequency
-T = 5                   # Sampling / Measurement time
-Ttot = 100              # Total time
-sigma = 1.0             # Noise level
-do_regression = False   # Do a linear regression as a second step
-
-Nmes = fs * T
-Ntot = fs * Ttot
-
-# We want our estimation to be close to the measures up to the noise level.
-# y = x + epsilon  -->  || Ax - y ||_2 <= || epsilon ||_2
-# Var(eps) = E(eps^2) - E(eps)^2
-# E( ||eps||_2 ) = sqrt( E( ||eps||_2^2 )) = sqrt( sum( E( eps_i^2 ))) = sqrt( N*Var(eps))
-# 1.1 is meant to leave some room.
-epsilon = 1.1 * np.sqrt(Nmes) * sigma  # Radius of the B2-ball
-
-maxit     = 50        # Maximum number of iteration
+maxit     = 50          # Maximum number of iteration
 tol       = 10e-10      # Tolerance to stop iterating
-
-#show_evolution = True  # show evolution of the algorithm
+do_regression = False   # Do a linear regression as a second step
 
 
 ###  Signal creation  ###
 
-
-s = np.zeros(Ntot)
-
-# Create the sinusoids
-for k in range(Ns):
-    f = np.round(np.random.uniform()*Ntot) / Ntot
-    amp = Amin + np.random.uniform() * (Amax-Amin)
-    s += amp * np.sin( 2 * np.pi * f * np.arange(Ntot))
-
-# Add noise
-sn = s + sigma * np.random.normal()
+s, fs, Ntot, Nmes, epsilon = artificial_signal()
 
 # Masking matrix
 mask = np.zeros(Ntot)
 mask[0:Nmes] = 1
 
 # Measurements
-y = mask * sn
+y = mask * s
 yf = np.fft.rfft(y)
 
 # Ground truth
@@ -136,12 +143,8 @@ plotfftreal(sf, fs)
 plt.title('Ground truth')
 
 plt.subplot(2,3,2)
-plotfftreal(np.fft.rfft(mask*s), fs)
-plt.title('Measurements without noise')
-
-plt.subplot(2,3,3)
 plotfftreal(yf, fs)
-plt.title('Measurements with noise')
+plt.title('Measurements')
 
 plt.subplot(2,3,4)
 plotfftreal(sol1, fs)
