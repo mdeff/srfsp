@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import h5py
 import pyunlocbox
 from tools import plotfftreal
 
 
-def artificial_signal():
+def artificial():
     """
     Artificial signal composed by a sum of sine waves.
     """
@@ -41,17 +42,44 @@ def artificial_signal():
     return sn, fs, Ntot, Nmes, epsilon
 
 
+def calmix():
+
+    # Percentage of measured data
+    Pmes = 0.05
+
+    # Open Hierarchical Data Format (HDF)
+    f = h5py.File('2-calmix.hdf5')
+
+    # Show datasets or groups
+    #f.values()
+
+    # Get signal
+    s = f.get('signal')
+
+    # Get sampling frequency
+    fs = f.get('fs').value
+
+    Ntot = len(s)
+    Nmes = np.round(Pmes * Ntot)
+    epsilon = 0
+
+    return s, fs, Ntot, Nmes, epsilon
+
+
 ###  Parameters  ###
 
 
-maxit     = 50          # Maximum number of iteration
-tol       = 10e-10      # Tolerance to stop iterating
-do_regression = False   # Do a linear regression as a second step
+dataset       = 'calmix'      # Dataset: artificial, calmix or myoglobin
+maxit         = 50            # Maximum number of iterations
+tol           = 10e-10        # Tolerance to stop iterating
+do_regression = False         # Do a linear regression as a second step
+prior_weight  = 1             # Weight of the prior term. Data fidelity has 1.
 
 
 ###  Signal creation  ###
 
-s, fs, Ntot, Nmes, epsilon = artificial_signal()
+
+exec('s, fs, Ntot, Nmes, epsilon = %s()' % (dataset,))
 
 # Masking matrix
 mask = np.zeros(Ntot)
@@ -75,7 +103,7 @@ f1 = pyunlocbox.functions.proj_b2(A=A, At=At, y=y, nu=1, tight=True,
                                   epsilon=epsilon)
 
 # Prior term
-f2 = pyunlocbox.functions.norm_l1(lambda_=10)
+f2 = pyunlocbox.functions.norm_l1(lambda_=prior_weight)
 
 # Solver : Douglas-Rachford as we have no gradient
 solver = pyunlocbox.solvers.douglas_rachford(step=np.max(np.abs(yf)))
@@ -87,7 +115,7 @@ ret = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit, verb
 sol1 = ret['sol']
 
 # Non-zero terms --> indices of the diracs
-ind = np.abs(sol1) > 1.
+ind = np.abs(sol1) != 0.
 print('Number of non-zero coefficients : %d' % (np.sum(ind),))
 
 
