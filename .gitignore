@@ -3,3 +3,7 @@
 
 # Vim swap files
 .*.swp
+
+# Figures
+*.png
+*.pdf
