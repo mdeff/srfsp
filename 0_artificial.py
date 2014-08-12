@@ -13,7 +13,7 @@ Amax = 2
 fs = 1000               # Sampling frequency
 T = 5                   # Sampling / Measurement time
 Ttot = 100              # Total time
-sigma = 0#1.0           # Noise level
+sigma = 1.0             # Noise level
 do_regression = False   # Do a linear regression as a second step
 
 Nmes = fs * T
@@ -156,5 +156,15 @@ if do_regression:
     plt.subplot(2,3,6)
     plt.plot(ret['objective'])
     plt.title('Objective function')
+
+else:
+
+    plt.subplot(2,3,5)
+    plotfftreal(sol1, fs, amp='real')
+    plt.title('Real part')
+
+    plt.subplot(2,3,6)
+    plotfftreal(sol1, fs, amp='imag')
+    plt.title('Imaginary part')
 
 plt.show()
