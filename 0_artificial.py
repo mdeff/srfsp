@@ -68,7 +68,7 @@ f1 = pyunlocbox.functions.proj_b2(A=A, At=At, y=y, nu=1, tight=True,
                                   epsilon=epsilon)
 
 # Prior term
-f2 = pyunlocbox.functions.norm_l1()
+f2 = pyunlocbox.functions.norm_l1(lambda_=10)
 
 # Solver : Douglas-Rachford as we have no gradient
 solver = pyunlocbox.solvers.douglas_rachford(step=np.max(np.abs(yf)))
