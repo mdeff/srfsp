@@ -39,6 +39,7 @@ def plotfftreal(s, fs, xlim=None, amp='abs'):
 def plot(sf, yf, sol1, sol2, fs, xlim=None, filename=None):
 
     plt.figure(figsize=(20,10), dpi=200)
+#    plt.figure()
 
     plt.subplot(2,3,1)
     plotfftreal(sf, fs, xlim)
@@ -63,6 +64,7 @@ def plot(sf, yf, sol1, sol2, fs, xlim=None, filename=None):
         plt.subplot(2,3,6)
         plt.plot(sol2['objective'])
         plt.title('Objective function')
+        plt.ticklabel_format(style='sci', scilimits=(3,3), axis='both')
 
     else:
 
@@ -116,6 +118,9 @@ def artificial():
 
 
 def signal(filename, Pmes):
+    """
+    Import a signal from an HDF file.
+    """
 
     # Open Hierarchical Data Format (HDF)
     f = h5py.File(filename)
@@ -145,7 +150,7 @@ def calmix():
 
 
 def myoglobin():
-    Pmes = 0.22  # Percentage of measured data
+    Pmes = 0.50  # Percentage of measured data
     return signal('1-myoglobin_simplified.hdf5', Pmes)
 
 
@@ -154,9 +159,9 @@ def myoglobin():
 
 dataset       = 'calmix'      # Dataset: artificial, calmix or myoglobin
 maxit1        = 50            # Maximum number of iterations for sparse coding
-maxit2        = 20            #                                  regression
+maxit2        = 15            #                                  regression
 tol           = 10e-10        # Tolerance to stop iterating
-do_regression = True          # Do a linear regression as a second step
+do_regression = True          # Do a linear regression as a third step
 prior_weight  = 1             # Weight of the prior term. Data fidelity has 1.
 
 
@@ -202,13 +207,13 @@ ind1 = np.abs(sol1['sol']) != 0
 print('Number of non-zero coefficients : %d' % (np.sum(ind1),))
 
 
-###  Problem 2 : Group peak aggregates into diracs  ###
+###  Problem 2 : Regroup aggregates into diracs  ###
 
 
-# As the solution is sparse, the peaks are separated by zeros. We group
-# together individual chunks of non-zero bins.
+# As the solution is sparse, the diracs (actually aggregates) are separated by
+# zeros. We group together individual chunks of non-zero bins.
 
-# Transitions from non-peak to peak
+# Transitions from non-aggregate to aggregate
 # ind[0:-1] 0 0 1 1 1 1 0 0
 # ind[1:]   0 1 1 1 1 0 0 0
 # trans     0 1 0 0 0 1 0 0
@@ -221,22 +226,21 @@ ends = nz[1::2]
 
 Npeaks = np.sum(trans) / 2.
 
-# Non-zero values indicate peaks
 ind2 = np.zeros(np.shape(ind1))
 
-# Find the maximum of each peak aggregate
+# Find the maximum of each aggregate, where the dirac most probably sits
 for k in range(int(Npeaks)):
     idx = np.argmax(sol1['sol'][starts[k]:ends[k]])
     idx += starts[k]
     ind2[idx] = 1
 
 if not len(starts) == len(ends) == np.sum(ind2) == Npeaks:
-    raise Exception('Peaks grouping failed')
+    raise Exception('Aggregates grouping failed')
 
 print('Number of non-zero coefficients : %d' % (Npeaks,))
 
 
-###  Problem 3 : Find amplitudes  ###
+###  Problem 3 : Estimate dirac amplitudes through linear regression  ###
 
 
 # Now that we have the indices of the diracs, we can force the other
