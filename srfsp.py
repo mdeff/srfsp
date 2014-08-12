@@ -4,7 +4,7 @@ import h5py
 import pyunlocbox
 
 
-def plotfftreal(s, fs, dataset, amp='abs'):
+def plotfftreal(s, fs, xlim=None, amp='abs'):
     r"""
     Plot the Fourier transform in a nice way.
 
@@ -14,8 +14,8 @@ def plotfftreal(s, fs, dataset, amp='abs'):
         Fourier transform of a signal.
     fs : float
         Sampling frequency.
-    dataset : string
-        Dataset name.
+    xlim : tuple
+        X-axis limits.
     amp : {'abs', 'real', 'imag'}
         Type of amplitude to plot.
     """
@@ -29,17 +29,51 @@ def plotfftreal(s, fs, dataset, amp='abs'):
     plt.xlabel('Frequency [Hz]')
     plt.ylabel('Amplitude (%s)' % (amp,))
 
-    if dataset is 'myoglobin':
-        plt.xlim(938.5e3, 941.5e3)
+    if xlim:
+        plt.xlim(xlim)
 
-#    plt.show()
+
+def plot(sf, yf, sol1, sol2, fs, xlim=None):
+
+    plt.figure()
+
+    plt.subplot(2,3,1)
+    plotfftreal(sf, fs, xlim)
+    plt.title('Ground truth')
+
+    plt.subplot(2,3,2)
+    plotfftreal(yf, fs, xlim)
+    plt.title('Measurements')
+
+    plt.subplot(2,3,4)
+    plotfftreal(sol1['sol'], fs, xlim)
+    plt.title('Recovered after sparsity constraint')
+
+    if sol2:
+
+        plt.subplot(2,3,5)
+        plotfftreal(sol2['sol'], fs, xlim)
+        plt.title('Recovered after linear regression')
+
+        plt.subplot(2,3,6)
+        plt.plot(sol2['objective'])
+        plt.title('Objective function')
+
+    else:
+
+        plt.subplot(2,3,5)
+        plotfftreal(sol1['sol'], fs, xlim, amp='real')
+        plt.title('Real part')
+
+        plt.subplot(2,3,6)
+        plotfftreal(sol1['sol'], fs, xlim, amp='imag')
+        plt.title('Imaginary part')
 
 
 def artificial():
     """
     Artificial signal composed by a sum of sine waves.
     """
-
     Ns = 5                  # Number of sines
     Amin = 1                # Minimum/Maximum amplitude for the sine
     Amax = 2
@@ -151,12 +185,11 @@ solver = pyunlocbox.solvers.douglas_rachford(step=np.max(np.abs(yf)))
 
 # Solve the problem
 x0 = np.zeros(np.shape(yf))
-ret = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit1,
-                               verbosity='LOW')
-sol1 = ret['sol']
+sol1 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit1,
+                                verbosity='LOW')
 
 # Non-zero values indicate peaks
-ind1 = np.abs(sol1) != 0.
+ind1 = np.abs(sol1['sol']) != 0.
 print('Number of non-zero coefficients : %d' % (np.sum(ind1),))
 
 
@@ -184,7 +217,7 @@ ind2 = np.zeros(np.shape(ind1))
 
 # Find the maximum of each peak aggregate
 for k in range(int(Npeaks)):
-    idx = np.argmax(sol1[starts[k]:ends[k]])
+    idx = np.argmax(sol1['sol'][starts[k]:ends[k]])
     idx += starts[k]
     ind2[idx] = 1
 
@@ -224,53 +257,42 @@ if do_regression:
 
     # Start from zero or last solution
     x0 = np.zeros(np.shape(yf))
-    #x0 = sol1
+    #x0 = sol1['sol']
 
     # Solve the problem
-    ret = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol,
-                                   maxit=maxit2, verbosity='LOW')
-    sol2 = ret['sol']
+    sol2 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol,
+                                    maxit=maxit2, verbosity='LOW')
 
     # Non-zero values indicate peaks
-    ind = np.abs(sol2)
-    print('Number of non-zero coefficients : %d' % (np.sum(ind2 > 1.),))
+    ind3 = np.abs(sol2['sol'])
+    print('Number of non-zero coefficients : %d' % (np.sum(ind3 > 1.),))
+
+else:
+
+    sol2 = None
 
 
 ###  Results  ###
 
+# Full view
+plot(sf, yf, sol1, sol2, fs)
 
-plt.figure()
-
-plt.subplot(2,3,1)
-plotfftreal(sf, fs, dataset)
-plt.title('Ground truth')
-
-plt.subplot(2,3,2)
-plotfftreal(yf, fs, dataset)
-plt.title('Measurements')
-
-plt.subplot(2,3,4)
-plotfftreal(sol1, fs, dataset)
-plt.title('Recovered after sparsity constraint')
-
-if do_regression:
-
-    plt.subplot(2,3,5)
-    plotfftreal(sol2, fs, dataset)
-    plt.title('Recovered after linear regression')
-
-    plt.subplot(2,3,6)
-    plt.plot(ret['objective'])
-    plt.title('Objective function')
-
+# Partially zoomed view
+if dataset is 'calmix':
+    xlim = (160e3, 300e3)
+elif dataset is 'myoglobin':
+    xlim = (938.5e3, 941.5e3)
 else:
+    xlim = None
+if xlim:
+    plot(sf, yf, sol1, sol2, fs, xlim)
 
-    plt.subplot(2,3,5)
-    plotfftreal(sol1, fs, dataset, amp='real')
-    plt.title('Real part')
-
-    plt.subplot(2,3,6)
-    plotfftreal(sol1, fs, dataset, amp='imag')
-    plt.title('Imaginary part')
+# Completely zoomed view
+if dataset is 'calmix':
+    xlim = (245.05e3, 245.55e3)
+else:
+    xlim = None
+if xlim:
+    plot(sf, yf, sol1, sol2, fs, xlim)
 
 plt.show()
