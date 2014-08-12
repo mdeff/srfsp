@@ -50,13 +50,15 @@ def plot(sf, yf, sol1, sol2, fs, xlim=None, filename=None):
 
     plt.subplot(2,3,4)
     plotfftreal(sol1['sol'], fs, xlim)
-    plt.title('Recovered after sparsity constraint')
+    N = np.sum(np.abs(sol1['sol']) != 0)
+    plt.title('Recovered after sparsity constraint (%d)' % (N,))
 
     if sol2:
 
         plt.subplot(2,3,5)
         plotfftreal(sol2['sol'], fs, xlim)
-        plt.title('Recovered after linear regression')
+        N = np.sum(np.abs(sol2['sol']) != 0)
+        plt.title('Recovered after linear regression (%d)' % (N,))
 
         plt.subplot(2,3,6)
         plt.plot(sol2['objective'])
@@ -196,7 +198,7 @@ sol1 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit1,
                                 verbosity='LOW')
 
 # Non-zero values indicate peaks
-ind1 = np.abs(sol1['sol']) != 0.
+ind1 = np.abs(sol1['sol']) != 0
 print('Number of non-zero coefficients : %d' % (np.sum(ind1),))
 
 
@@ -271,8 +273,8 @@ if do_regression:
                                     maxit=maxit2, verbosity='LOW')
 
     # Non-zero values indicate peaks
-    ind3 = np.abs(sol2['sol'])
-    print('Number of non-zero coefficients : %d' % (np.sum(ind3 > 1.),))
+    ind3 = np.abs(sol2['sol']) != 0
+    print('Number of non-zero coefficients : %d' % (np.sum(ind3),))
 
 else:
 
