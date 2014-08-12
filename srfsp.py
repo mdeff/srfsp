@@ -42,13 +42,10 @@ def artificial():
     return sn, fs, Ntot, Nmes, epsilon
 
 
-def calmix():
-
-    # Percentage of measured data
-    Pmes = 0.05
+def signal(filename, Pmes):
 
     # Open Hierarchical Data Format (HDF)
-    f = h5py.File('2-calmix.hdf5')
+    f = h5py.File(filename)
 
     # Show datasets or groups
     #f.values()
@@ -61,15 +58,28 @@ def calmix():
 
     Ntot = len(s)
     Nmes = np.round(Pmes * Ntot)
+
+    # Radius of the B2-ball
     epsilon = 0
+#    epsilon = 1.1 * np.sqrt(Ntot) * 0.001
 
     return s, fs, Ntot, Nmes, epsilon
+
+
+def calmix():
+    Pmes = 0.05  # Percentage of measured data
+    return signal('2-calmix.hdf5', Pmes)
+
+
+def myoglobin():
+    Pmes = 0.22  # Percentage of measured data
+    return signal('1-myoglobin_simplified.hdf5', Pmes)
 
 
 ###  Parameters  ###
 
 
-dataset       = 'calmix'      # Dataset: artificial, calmix or myoglobin
+dataset       = 'myoglobin'   # Dataset: artificial, calmix or myoglobin
 maxit         = 50            # Maximum number of iterations
 tol           = 10e-10        # Tolerance to stop iterating
 do_regression = False         # Do a linear regression as a second step
@@ -167,21 +177,21 @@ if do_regression:
 plt.figure()
 
 plt.subplot(2,3,1)
-plotfftreal(sf, fs)
+plotfftreal(sf, fs, dataset)
 plt.title('Ground truth')
 
 plt.subplot(2,3,2)
-plotfftreal(yf, fs)
+plotfftreal(yf, fs, dataset)
 plt.title('Measurements')
 
 plt.subplot(2,3,4)
-plotfftreal(sol1, fs)
+plotfftreal(sol1, fs, dataset)
 plt.title('Recovered after sparsity constraint')
 
 if do_regression:
 
     plt.subplot(2,3,5)
-    plotfftreal(sol2, fs)
+    plotfftreal(sol2, fs, dataset)
     plt.title('Recovered after linear regression')
 
     plt.subplot(2,3,6)
@@ -191,11 +201,11 @@ if do_regression:
 else:
 
     plt.subplot(2,3,5)
-    plotfftreal(sol1, fs, amp='real')
+    plotfftreal(sol1, fs, dataset, amp='real')
     plt.title('Real part')
 
     plt.subplot(2,3,6)
-    plotfftreal(sol1, fs, amp='imag')
+    plotfftreal(sol1, fs, dataset, amp='imag')
     plt.title('Imaginary part')
 
 plt.show()

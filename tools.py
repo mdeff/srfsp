@@ -2,16 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plotfftreal(s, fs, amp='abs'):
+def plotfftreal(s, fs, dataset, amp='abs'):
     r"""
     Plot the Fourier transform in a nice way.
 
     Parameters
     ----------
     s : array_like
-        The Fourier transform of a signal.
+        Fourier transform of a signal.
     fs : float
-        The sampling frequency
+        Sampling frequency.
+    dataset : string
+        Dataset name.
     amp : {'abs', 'real', 'imag'}
         Type of amplitude to plot.
     """
@@ -24,5 +26,8 @@ def plotfftreal(s, fs, amp='abs'):
 
     plt.xlabel('Frequency [Hz]')
     plt.ylabel('Amplitude (%s)' % (amp,))
+
+    if dataset is 'myoglobin':
+        plt.xlim(938.5e3, 941.5e3)
 
 #    plt.show()
