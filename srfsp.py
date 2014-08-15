@@ -192,6 +192,15 @@ def myoglobin():
     return s, fs, Ntot, Nmes, epsilon
 
 
+###  Main script  ###
+
+
+if pyunlocbox.__version__ < '0.2.1':
+    raise Exception('PyUNLocBox package older than 0.2.1 contains a bug that '
+                    'prevent the correct execution of this script. Current '
+                    'version is %s' % (pyunlocbox.__version__,))
+
+
 ###  Parameters  ###
 
 
