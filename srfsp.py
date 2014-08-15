@@ -117,9 +117,21 @@ def artificial():
     return sn, fs, Ntot, Nmes, epsilon
 
 
-def signal(filename, Pmes):
+def signal(filename):
     """
-    Import a signal from an HDF file.
+    Import a signal, along with its sampling frequency, from an HDF file.
+
+    Parameters
+    ----------
+    filename : string
+        Name of the HDF file in the current directory or path to it.
+
+    Returns
+    -------
+    s : array_like
+        The retrieved signal.
+    fs : float
+        The signal sampling frequency.
     """
 
     # Open Hierarchical Data Format (HDF)
@@ -134,6 +146,42 @@ def signal(filename, Pmes):
     # Get sampling frequency
     fs = f.get('fs').value
 
+    print('Sampling frequency : %f, number of samples : %d' % (fs, len(s)))
+
+    return s, fs
+
+
+def calmix():
+    """
+    A high resolution signal. Our task is to mask it (i.e. measures only a
+    portion of it) and try to recover the original information for the reduced
+    measurement. We know that it is sparse in the Fourier domain.
+    """
+    # Signal and sampling frequency
+    s, fs = signal('2-calmix.hdf5', Pmes)
+
+    # Percentage of measured data
+    Pmes = 0.05
+    Ntot = len(s)
+    Nmes = np.round(Pmes * Ntot)
+
+    # Radius of the B2-ball
+    epsilon = 0
+
+    return s, fs, Ntot, Nmes, epsilon
+
+
+def myoglobin():
+    """
+    A low resolution signal. Our task is to improve its resolution in the
+    Fourier domain and identify the diracs composing the signal. We know that
+    it is sparse in the Fourier domain.
+    """
+    # Signal and sampling frequency
+    s, fs = signal('1-myoglobin_simplified.hdf5')
+
+    # Percentage of measured data
+    Pmes = 0.50
     Ntot = len(s)
     Nmes = np.round(Pmes * Ntot)
 
@@ -142,16 +190,6 @@ def signal(filename, Pmes):
 #    epsilon = 1.1 * np.sqrt(Ntot) * 0.001
 
     return s, fs, Ntot, Nmes, epsilon
-
-
-def calmix():
-    Pmes = 0.05  # Percentage of measured data
-    return signal('2-calmix.hdf5', Pmes)
-
-
-def myoglobin():
-    Pmes = 0.50  # Percentage of measured data
-    return signal('1-myoglobin_simplified.hdf5', Pmes)
 
 
 ###  Parameters  ###
