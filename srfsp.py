@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
@@ -150,19 +149,20 @@ def signal(filename):
     # Get sampling frequency
     fs = f.get('fs').value
 
-    print('Sampling frequency : %f, number of samples : %d' % (fs, len(s)))
+    print('Sampling frequency : %d MHz, # samples : %d' % (fs/1e6, len(s)))
 
     return s, fs
 
 
 def calmix():
     """
-    A high resolution signal. Our task is to mask it (i.e. measures only a
-    portion of it) and try to recover the original information for the reduced
-    measurement. We know that it is sparse in the Fourier domain.
+    A high resolution signal, i.e. the ground truth. The measurement is a
+    masked version of it (i.e. we retain only a portion of it). We then try to
+    recover the information from the measurement and compare it to the ground
+    truth. We know that the signal is sparse in the Fourier domain.
     """
     # Signal and sampling frequency
-    s, fs = signal('2-calmix.hdf5', Pmes)
+    s, fs = signal('2-calmix.hdf5')
 
     # Percentage of measured data
     Pmes = 0.05
@@ -179,7 +179,7 @@ def myoglobin():
     """
     A low resolution signal. Our task is to improve its resolution in the
     Fourier domain and identify the diracs composing the signal. We know that
-    it is sparse in the Fourier domain.
+    it is sparse in the Fourier domain. We have no ground truth.
     """
     # Signal and sampling frequency
     s, fs = signal('1-myoglobin_simplified.hdf5')
@@ -219,7 +219,9 @@ prior_weight  = 1             # Weight of the prior term. Data fidelity has 1.
 ###  Signal creation  ###
 
 
+print('Dataset : %s' % (dataset,))
 exec('s, fs, Ntot, Nmes, epsilon = %s()' % (dataset,))
+print('%d measures out of %d samples (%d%%)' % (Nmes, Ntot, Nmes/Ntot*100.))
 
 # Masking matrix
 mask = np.zeros(Ntot)
