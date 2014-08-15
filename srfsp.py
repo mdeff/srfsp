@@ -64,7 +64,7 @@ def plot(sf, yf, sol1, sol2, fs, xlim=None, filename=None):
         plt.subplot(2,3,6)
         plt.plot(sol2['objective'])
         plt.title('Objective function')
-        plt.ticklabel_format(style='sci', scilimits=(3,3), axis='both')
+        plt.ticklabel_format(style='sci', scilimits=(3,3), axis='y')
 
     else:
 
