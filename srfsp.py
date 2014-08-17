@@ -187,7 +187,7 @@ def calmix():
     # Percentage of measured data
     Pmes = 0.05
     Ntot = len(s)
-    Nmes = int(Pmes * Ntot)
+    Nmes = int(Ntot * Pmes)
 
     # Radius of the B2-ball
     epsilon = 0
@@ -205,9 +205,9 @@ def myoglobin():
     s, fs = signal('1-myoglobin_simplified.hdf5')
 
     # Percentage of measured data
-    Pmes = 0.50
-    Ntot = len(s)
-    Nmes = int(Pmes * Ntot)
+    Pmes = 0.05
+    Nmes = len(s)
+    Ntot = int(Nmes / Pmes)
 
     # Radius of the B2-ball
     epsilon = 0
