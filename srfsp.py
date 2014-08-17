@@ -61,9 +61,10 @@ def plot(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
     else:
         plt.figure()
 
-    plt.subplot(2,3,1)
-    title = 'Ground truth'
-    plotfftreal(sf, fs, title, xlim)
+    if sf is not None:
+        plt.subplot(2,3,1)
+        title = 'Ground truth'
+        plotfftreal(sf, fs, title, xlim)
 
     plt.subplot(2,3,2)
     title = 'Measurements (low res)'
@@ -257,8 +258,11 @@ yh = np.zeros(Ntot)
 yh[:Nmes] = yl
 yhf = np.fft.rfft(yh)
 
-# Ground truth
-sf = np.fft.rfft(s)
+# Ground truth if any
+if len(s) == Ntot:
+    sf = np.fft.rfft(s)
+else:
+    sf = None
 
 
 ###  Problem 1 : Sparse coding  ###
