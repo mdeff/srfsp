@@ -303,7 +303,7 @@ ind2 = np.zeros(np.shape(ind1))
 
 # Find the maximum of each aggregate, where the dirac most probably sits
 for k in range(int(Npeaks)):
-    idx = np.argmax(sol1['sol'][starts[k]:ends[k]])
+    idx = np.argmax(np.abs(sol1['sol'][starts[k]:ends[k]]))
     idx += starts[k]
     ind2[idx] = 1
 
