@@ -242,7 +242,7 @@ save_results  = True          # Save or interactively show the results
 
 print('Dataset : %s' % (dataset,))
 exec('s, fs, Ntot, Nmes, epsilon = %s()' % (dataset,))
-print('%d measures out of %d samples (%d%%)' % (Nmes, Ntot, Nmes/Ntot*100.))
+print('%d measures out of %d samples (%d%%)' % (Nmes, Ntot, 100.*Nmes/Ntot))
 
 # Masking matrix
 mask = np.zeros(Ntot)
