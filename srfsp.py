@@ -16,7 +16,7 @@ def nonzero(s):
     return ind, N
 
 
-def plotfftreal(s, fs, xlim=None, amp='abs'):
+def plotfftreal(s, fs, title, xlim=None, amp='abs'):
     r"""
     Plot the Fourier transform in a nice way.
 
@@ -26,6 +26,8 @@ def plotfftreal(s, fs, xlim=None, amp='abs'):
         Fourier transform of a signal.
     fs : float
         Sampling frequency.
+    title : string
+        Title of the graph.
     xlim : tuple
         X-axis limits.
     amp : {'abs', 'real', 'imag'}
@@ -41,6 +43,9 @@ def plotfftreal(s, fs, xlim=None, amp='abs'):
     plt.xlabel('Frequency [Hz]')
     plt.ylabel('Amplitude (%s)' % (amp,))
 
+    _, N = nonzero(s)
+    plt.title('%s (%d)' % (title, N))
+
     # Force axis numbers to be printed in scientific notation
     plt.ticklabel_format(style='sci', scilimits=(3,3), axis='both')
 
@@ -54,24 +59,22 @@ def plot(sf, yf, sol1, sol2, fs, xlim=None, filename=None):
 #    plt.figure()
 
     plt.subplot(2,3,1)
-    plotfftreal(sf, fs, xlim)
-    plt.title('Ground truth')
+    title = 'Ground truth'
+    plotfftreal(sf, fs, title, xlim)
 
     plt.subplot(2,3,2)
-    plotfftreal(yf, fs, xlim)
-    plt.title('Measurements')
+    title = 'Measurements'
+    plotfftreal(yf, fs, title, xlim)
 
     plt.subplot(2,3,4)
-    plotfftreal(sol1['sol'], fs, xlim)
-    N = np.sum(np.abs(sol1['sol']) != 0)
-    plt.title('Recovered after sparsity constraint (%d)' % (N,))
+    title = 'Recovered 1 (sparsity constraint)'
+    plotfftreal(sol1['sol'], fs, title, xlim)
 
     if sol2:
 
         plt.subplot(2,3,5)
-        plotfftreal(sol2['sol'], fs, xlim)
-        N = np.sum(np.abs(sol2['sol']) != 0)
-        plt.title('Recovered after linear regression (%d)' % (N,))
+        title = 'Recovered 2 (linear regression)'
+        plotfftreal(sol2['sol'], fs, title, xlim)
 
         plt.subplot(2,3,6)
         plt.plot(sol2['objective'])
@@ -81,12 +84,12 @@ def plot(sf, yf, sol1, sol2, fs, xlim=None, filename=None):
     else:
 
         plt.subplot(2,3,5)
-        plotfftreal(sol1['sol'], fs, xlim, amp='real')
-        plt.title('Real part')
+        title = 'Real part'
+        plotfftreal(sol1['sol'], fs, title, xlim, amp='real')
 
         plt.subplot(2,3,6)
-        plotfftreal(sol1['sol'], fs, xlim, amp='imag')
-        plt.title('Imaginary part')
+        title = 'Imaginary part'
+        N = plotfftreal(sol1['sol'], fs, title, xlim, amp='imag')
 
     if filename:
         plt.savefig(filename + '.png')
