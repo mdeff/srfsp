@@ -125,6 +125,9 @@ def artificial():
     # Add noise
     sn = s + sigma * np.random.normal()
 
+    # No offset, otherwise it can create an additional dirac at 0
+    sn -= np.mean(sn)
+
     return sn, fs, Ntot, Nmes, epsilon
 
 
