@@ -348,21 +348,20 @@ sol2 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol,
                                 maxit=maxit2, verbosity='LOW')
 
 # Non-zero values indicate peaks
-_, N = nonzero(sol2['sol'])
+ind2, N = nonzero(sol2['sol'])
 print('Number of non-zero coefficients : %d' % (N,))
 
 
 ###  Show results  ###
 
 # Verify the exactitude of the algorithm on the artificial dataset
-indt1 = np.abs(sf) >= np.max(np.abs(sf)/2)
-indt2, _ = nonzero(sol2['sol'])
+inds = np.abs(sf) >= np.max(np.abs(sf)/2)
 if not np.array_equal(indt1,indt2):
     # Error goes by pair
-    Nerr = np.sum(indt1!=indt2) / 2
+    Nerr = np.sum(inds != ind2) / 2
     print('Number of errors : %d' % (Nerr,))
-    print('    Ground truth : %s' % (str(np.nonzero(indt1)[0]),))
-    print('    Solution : %s' % (str(np.nonzero(indt2)[0]),))
+    print('    Ground truth : %s' % (str(np.nonzero(inds)[0]),))
+    print('    Solution : %s' % (str(np.nonzero(ind2)[0]),))
 
 # Full view
 filename = dataset+'_full' if save_results else None
