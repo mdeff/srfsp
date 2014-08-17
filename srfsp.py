@@ -7,6 +7,15 @@ import h5py
 import pyunlocbox
 
 
+def nonzero(s):
+    """
+    Return an array where 1 indicates a non-zero element and 0 a zero element.
+    """
+    ind = np.abs(s) != 0
+    N = np.sum(ind)
+    return ind, N
+
+
 def plotfftreal(s, fs, xlim=None, amp='abs'):
     r"""
     Plot the Fourier transform in a nice way.
@@ -256,8 +265,8 @@ sol1 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit1,
                                 verbosity='LOW')
 
 # Non-zero values indicate peaks
-ind1 = np.abs(sol1['sol']) != 0
-print('Number of non-zero coefficients : %d' % (np.sum(ind1),))
+ind1, N = nonzero(sol1['sol'])
+print('Number of non-zero coefficients : %d' % (N,))
 
 
 ###  Problem 2 : Regroup aggregates into diracs  ###
@@ -330,8 +339,8 @@ if do_regression:
                                     maxit=maxit2, verbosity='LOW')
 
     # Non-zero values indicate peaks
-    ind3 = np.abs(sol2['sol']) != 0
-    print('Number of non-zero coefficients : %d' % (np.sum(ind3),))
+    _, N = nonzero(sol2['sol'])
+    print('Number of non-zero coefficients : %d' % (N,))
 
 else:
 
