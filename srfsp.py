@@ -55,8 +55,11 @@ def plotfftreal(s, fs, title, xlim=None, amp='abs'):
 
 def plot(sf, yf, sol1, sol2, fs, xlim=None, filename=None):
 
-    plt.figure(figsize=(20,10), dpi=200)
-#    plt.figure()
+    # Set figure size when saving
+    if filename:
+        plt.figure(figsize=(20,10), dpi=200)
+    else:
+        plt.figure()
 
     plt.subplot(2,3,1)
     title = 'Ground truth'
