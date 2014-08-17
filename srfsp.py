@@ -17,7 +17,7 @@ def nonzero(s):
 
 
 def plotfftreal(s, fs, title, xlim=None, amp='abs'):
-    r"""
+    """
     Plot the Fourier transform in a nice way.
 
     Parameters
@@ -246,7 +246,7 @@ print('%d measures out of %d samples (%d%%)' % (Nmes, Ntot, 100.*Nmes/Ntot))
 
 # Masking matrix
 mask = np.zeros(Ntot)
-mask[0:Nmes] = 1
+mask[:Nmes] = 1
 
 # Low resolution measurements : s or part of s if s is the ground truth
 yl = s[:Nmes]
