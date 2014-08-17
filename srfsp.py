@@ -116,8 +116,8 @@ def artificial():
     Ttot = 100              # Total time
     sigma = 1.0             # Noise level
 
-    Nmes = fs * T           # Number of measured samples
-    Ntot = fs * Ttot        # Total number of samples
+    Nmes = int(fs * T)      # Number of measured samples
+    Ntot = int(fs * Ttot)   # Total number of samples
 
     # We want our estimation to be close to the measures up to the noise level.
     # y = x + epsilon  -->  || Ax - y ||_2 <= || epsilon ||_2
@@ -187,7 +187,7 @@ def calmix():
     # Percentage of measured data
     Pmes = 0.05
     Ntot = len(s)
-    Nmes = np.round(Pmes * Ntot)
+    Nmes = int(Pmes * Ntot)
 
     # Radius of the B2-ball
     epsilon = 0
@@ -207,7 +207,7 @@ def myoglobin():
     # Percentage of measured data
     Pmes = 0.50
     Ntot = len(s)
-    Nmes = np.round(Pmes * Ntot)
+    Nmes = int(Pmes * Ntot)
 
     # Radius of the B2-ball
     epsilon = 0
