@@ -78,26 +78,14 @@ def plot(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
     title = 'Recovered 1 (sparsity constraint)'
     plotfftreal(sol1['sol'], fs, title, xlim)
 
-    if sol2:
+    plt.subplot(2,3,5)
+    title = 'Recovered 2 (linear regression)'
+    plotfftreal(sol2['sol'], fs, title, xlim)
 
-        plt.subplot(2,3,5)
-        title = 'Recovered 2 (linear regression)'
-        plotfftreal(sol2['sol'], fs, title, xlim)
-
-        plt.subplot(2,3,6)
-        plt.plot(sol2['objective'])
-        plt.title('Objective function')
-        plt.ticklabel_format(style='sci', scilimits=(3,3), axis='y')
-
-    else:
-
-        plt.subplot(2,3,5)
-        title = 'Real part'
-        plotfftreal(sol1['sol'], fs, title, xlim, amp='real')
-
-        plt.subplot(2,3,6)
-        title = 'Imaginary part'
-        N = plotfftreal(sol1['sol'], fs, title, xlim, amp='imag')
+    plt.subplot(2,3,6)
+    plt.plot(sol2['objective'])
+    plt.title('Objective function')
+    plt.ticklabel_format(style='sci', scilimits=(3,3), axis='y')
 
     if filename:
         plt.savefig(filename + '.png')
@@ -232,7 +220,6 @@ dataset       = 'calmix'      # Dataset: artificial, calmix or myoglobin
 maxit1        = 50            # Maximum number of iterations for sparse coding
 maxit2        = 15            #                                  regression
 tol           = 10e-10        # Tolerance to stop iterating
-do_regression = True          # Do a linear regression as a third step
 prior_weight  = 1             # Weight of the prior term. Data fidelity has 1.
 save_results  = True          # Save or interactively show the results
 
@@ -336,36 +323,30 @@ print('Number of non-zero coefficients : %d' % (Npeaks,))
 # It'll only be useful if the bins are the right ones.
 # If there is too much of them, it'll simply retrieve the measurements.
 
-if do_regression:
+# Gradient descent under constraint with forward-backward
+solver = pyunlocbox.solvers.forward_backward()
 
-    # Gradient descent under constraint with forward-backward
-    solver = pyunlocbox.solvers.forward_backward()
+# Data fidelity term is the same than before, but expressed as a function
+# to minimize instead of a constraint
+f1 = pyunlocbox.functions.norm_l2(A=A, At=At, y=yh)
 
-    # Data fidelity term is the same than before, but expressed as a function
-    # to minimize instead of a constraint
-    f1 = pyunlocbox.functions.norm_l2(A=A, At=At, y=yh)
+# The prior is the indices who can be different than 0. The proximal
+# operator is a projection on the constraint set.
+f2 = pyunlocbox.functions.func()
+f2._eval = lambda x: 0
+f2._prox = lambda x, T: ind2 * x
 
-    # The prior is the indices who can be different than 0. The proximal
-    # operator is a projection on the constraint set.
-    f2 = pyunlocbox.functions.func()
-    f2._eval = lambda x: 0
-    f2._prox = lambda x, T: ind2 * x
+# Start from zero or last solution
+x0 = np.zeros(np.shape(yhf))
+#x0 = sol1['sol']
 
-    # Start from zero or last solution
-    x0 = np.zeros(np.shape(yhf))
-    #x0 = sol1['sol']
+# Solve the problem
+sol2 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol,
+                                maxit=maxit2, verbosity='LOW')
 
-    # Solve the problem
-    sol2 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol,
-                                    maxit=maxit2, verbosity='LOW')
-
-    # Non-zero values indicate peaks
-    _, N = nonzero(sol2['sol'])
-    print('Number of non-zero coefficients : %d' % (N,))
-
-else:
-
-    sol2 = None
+# Non-zero values indicate peaks
+_, N = nonzero(sol2['sol'])
+print('Number of non-zero coefficients : %d' % (N,))
 
 
 ###  Show results  ###
