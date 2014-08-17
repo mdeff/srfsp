@@ -356,7 +356,7 @@ print('Number of non-zero coefficients : %d' % (N,))
 
 # Verify the exactitude of the algorithm on the artificial dataset
 inds = np.abs(sf) >= np.max(np.abs(sf)/2)
-if not np.array_equal(indt1,indt2):
+if not np.array_equal(inds,ind2):
     # Error goes by pair
     Nerr = np.sum(inds != ind2) / 2
     print('Number of errors : %d' % (Nerr,))
