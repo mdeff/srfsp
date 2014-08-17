@@ -53,7 +53,7 @@ def plotfftreal(s, fs, title, xlim=None, amp='abs'):
         plt.xlim(xlim)
 
 
-def plot(sf, yf, sol1, sol2, fs, xlim=None, filename=None):
+def plot(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
 
     # Set figure size when saving
     if filename:
@@ -66,8 +66,12 @@ def plot(sf, yf, sol1, sol2, fs, xlim=None, filename=None):
     plotfftreal(sf, fs, title, xlim)
 
     plt.subplot(2,3,2)
-    title = 'Measurements'
-    plotfftreal(yf, fs, title, xlim)
+    title = 'Measurements (low res)'
+    plotfftreal(ylf, fs, title, xlim)
+
+    plt.subplot(2,3,3)
+    title = 'Measurements (high res)'
+    plotfftreal(yhf, fs, title, xlim)
 
     plt.subplot(2,3,4)
     title = 'Recovered 1 (sparsity constraint)'
@@ -243,9 +247,15 @@ print('%d measures out of %d samples (%d%%)' % (Nmes, Ntot, Nmes/Ntot*100.))
 mask = np.zeros(Ntot)
 mask[0:Nmes] = 1
 
-# Measurements
-y = mask * s
-yf = np.fft.rfft(y)
+# Low resolution measurements : s or part of s if s is the ground truth
+yl = s[:Nmes]
+ylf = np.fft.rfft(yl)
+
+# High resolution measurements : yl followed by zeros
+# This is to increase the frequency resolution in Fourier
+yh = np.zeros(Ntot)
+yh[:Nmes] = yl
+yhf = np.fft.rfft(yh)
 
 # Ground truth
 sf = np.fft.rfft(s)
@@ -257,17 +267,17 @@ sf = np.fft.rfft(s)
 # Data fidelity term
 A = lambda x: mask * np.fft.irfft(x)
 At = lambda x: np.fft.rfft(mask * x)
-f1 = pyunlocbox.functions.proj_b2(A=A, At=At, y=y, nu=1, tight=True,
+f1 = pyunlocbox.functions.proj_b2(A=A, At=At, y=yh, nu=1, tight=True,
                                   epsilon=epsilon)
 
 # Prior term
 f2 = pyunlocbox.functions.norm_l1(lambda_=prior_weight)
 
 # Solver : Douglas-Rachford as we have no gradient
-solver = pyunlocbox.solvers.douglas_rachford(step=np.max(np.abs(yf)))
+solver = pyunlocbox.solvers.douglas_rachford(step=np.max(np.abs(yhf)))
 
 # Solve the problem
-x0 = np.zeros(np.shape(yf))
+x0 = np.zeros(np.shape(yhf))
 sol1 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit1,
                                 verbosity='LOW')
 
@@ -329,7 +339,7 @@ if do_regression:
 
     # Data fidelity term is the same than before, but expressed as a function
     # to minimize instead of a constraint
-    f1 = pyunlocbox.functions.norm_l2(A=A, At=At, y=y)
+    f1 = pyunlocbox.functions.norm_l2(A=A, At=At, y=yh)
 
     # The prior is the indices who can be different than 0. The proximal
     # operator is a projection on the constraint set.
@@ -338,7 +348,7 @@ if do_regression:
     f2._prox = lambda x, T: ind2 * x
 
     # Start from zero or last solution
-    x0 = np.zeros(np.shape(yf))
+    x0 = np.zeros(np.shape(yhf))
     #x0 = sol1['sol']
 
     # Solve the problem
@@ -359,7 +369,7 @@ else:
 
 # Full view
 filename = dataset+'_full' if save_results else None
-plot(sf, yf, sol1, sol2, fs, None, filename)
+plot(sf, ylf, yhf, sol1, sol2, fs, None, filename)
 
 # Partially zoomed view
 if dataset is 'calmix':
@@ -370,7 +380,7 @@ else:
     xlim = None
 if xlim:
     filename = dataset+'_zoom1' if save_results else None
-    plot(sf, yf, sol1, sol2, fs, xlim, filename)
+    plot(sf, ylf, yhf, sol1, sol2, fs, xlim, filename)
 
 # Completely zoomed view
 if dataset is 'calmix':
@@ -381,7 +391,7 @@ else:
     xlim = None
 if xlim:
     filename = dataset+'_zoom2' if save_results else None
-    plot(sf, yf, sol1, sol2, fs, xlim, filename)
+    plot(sf, ylf, yhf, sol1, sol2, fs, xlim, filename)
 
 # Interactively show results if not saved to figures
 if not save_results:
