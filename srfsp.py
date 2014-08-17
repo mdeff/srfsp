@@ -372,6 +372,13 @@ if dataset is 'calmix':
     xlim = (160e3, 300e3)
 elif dataset is 'myoglobin':
     xlim = (938.5e3, 941.5e3)
+elif dataset is 'artificial':
+    # Show the third dirac
+    width = 80
+    dirac3 = np.nonzero(ind2)[0][2]
+    xlim = np.array([dirac3 - width, dirac3 + width], dtype=float)
+    xlim *= float(fs) / len(ind2)
+    xlim = tuple(xlim)
 else:
     xlim = None
 if xlim:
