@@ -226,6 +226,7 @@ maxit2        = 15            #                                  regression
 tol           = 10e-10        # Tolerance to stop iterating
 do_regression = True          # Do a linear regression as a third step
 prior_weight  = 1             # Weight of the prior term. Data fidelity has 1.
+save_results  = True          # Save or interactively show the results
 
 
 ###  Signal creation  ###
@@ -354,7 +355,8 @@ else:
 
 
 # Full view
-plot(sf, yf, sol1, sol2, fs, filename=dataset+'_full')
+filename = dataset+'_full' if save_results else None
+plot(sf, yf, sol1, sol2, fs, None, filename)
 
 # Partially zoomed view
 if dataset is 'calmix':
@@ -364,7 +366,8 @@ elif dataset is 'myoglobin':
 else:
     xlim = None
 if xlim:
-    plot(sf, yf, sol1, sol2, fs, xlim, dataset+'_zoom1')
+    filename = dataset+'_zoom1' if save_results else None
+    plot(sf, yf, sol1, sol2, fs, xlim, filename)
 
 # Completely zoomed view
 if dataset is 'calmix':
@@ -372,6 +375,9 @@ if dataset is 'calmix':
 else:
     xlim = None
 if xlim:
-    plot(sf, yf, sol1, sol2, fs, xlim, dataset+'_zoom2')
+    filename = dataset+'_zoom2' if save_results else None
+    plot(sf, yf, sol1, sol2, fs, xlim, filename)
 
-#plt.show()
+# Interactively show results if not saved to figures
+if not save_results:
+    plt.show()
