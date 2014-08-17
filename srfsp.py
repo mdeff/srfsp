@@ -375,6 +375,8 @@ if xlim:
 # Completely zoomed view
 if dataset is 'calmix':
     xlim = (245.05e3, 245.55e3)
+elif dataset is 'myoglobin':
+    xlim = (940.1e3, 940.45e3)
 else:
     xlim = None
 if xlim:
