@@ -40,6 +40,8 @@ def plotfftreal(s, fs, title, xlim=None, amp='abs'):
 
     plt.plot(w, y, 'b.-')
 
+    plt.grid(True)
+
     plt.xlabel('Frequency [Hz]')
     plt.ylabel('Amplitude (%s)' % (amp,))
 
@@ -85,6 +87,7 @@ def plot(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
     plt.subplot(2,3,6)
     plt.plot(sol2['objective'])
     plt.title('Objective function')
+    plt.grid(True)
     plt.ticklabel_format(style='sci', scilimits=(3,3), axis='y')
 
     if filename:
