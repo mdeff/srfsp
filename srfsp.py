@@ -49,7 +49,7 @@ def plotfftreal(s, fs, title, xlim=None, amp='abs'):
     _, N = nonzero(s)
     plt.title('%s (%d)' % (title, N))
 
-    # Force axis numbers to be printed in scientific notation
+    # Force axis numbers to be printed in scientific notation.
     plt.ticklabel_format(style='sci', scilimits=(3,3), axis='both')
 
     if xlim:
@@ -58,7 +58,7 @@ def plotfftreal(s, fs, title, xlim=None, amp='abs'):
 
 def plot(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
 
-    # Set figure size when saving
+    # Set figure size when saving.
     if filename:
         plt.figure(figsize=(20,10), dpi=200)
     else:
@@ -93,7 +93,7 @@ def plot(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
 
     if filename:
         plt.savefig(filename + '.png')
-#        plt.savefig(filename + '.pdf')
+        #plt.savefig(filename + '.pdf')
 
 
 def addnoise(s, Nmes, sigma=1):
@@ -116,16 +116,17 @@ def addnoise(s, Nmes, sigma=1):
         Noisy signal.
     epsilon : float
         Radius of the L2-ball.
+
+    Notes
+    -----
+    We want our estimation to be close to the measures up to the noise level.
+    y = x + epsilon  -->  || Ax - y ||_2 <= || epsilon ||_2
+    Var(eps) = E(eps^2) - E(eps)^2
+    E( ||eps||_2 ) = sqrt( E( ||eps||_2^2 )) = sqrt( sum( E( eps_i^2 ))) = sqrt( N*Var(eps))
+    1.1 is meant to leave some room. 1.0 works best for high noise level.
     """
     sn = s + np.random.normal(0, sigma, len(s))
-
-    # We want our estimation to be close to the measures up to the noise level.
-    # y = x + epsilon  -->  || Ax - y ||_2 <= || epsilon ||_2
-    # Var(eps) = E(eps^2) - E(eps)^2
-    # E( ||eps||_2 ) = sqrt( E( ||eps||_2^2 )) = sqrt( sum( E( eps_i^2 ))) = sqrt( N*Var(eps))
-    # 1.1 is meant to leave some room. 1.0 works best for high noise level.
     epsilon = 1.0 * np.sqrt(Nmes) * sigma
-
     return sn, epsilon
 
 
@@ -133,25 +134,23 @@ def artificial():
     """
     Artificial signal composed by a sum of sine waves.
     """
-    Ns = 5                  # Number of sines
-    Amin = 1                # Minimum/Maximum amplitude for the sine
+    Ns = 5                  # Number of sines.
+    Amin = 1                # Minimum/Maximum amplitude for the sines.
     Amax = 2
-    fs = 1000               # Sampling frequency
-    T = 5                   # Sampling / Measurement time
-    Ttot = 100              # Total time
-    sigma = 1.0             # Noise level
+    fs = 1000               # Sampling frequency.
+    Tmes = 5                # Measurement time.
+    Ttot = 100              # Total time.
 
-    Nmes = int(fs * T)      # Number of measured samples
-    Ntot = int(fs * Ttot)   # Total number of samples
+    Nmes = int(fs * Tmes)   # Number of measured samples.
+    Ntot = int(fs * Ttot)   # Total number of samples.
 
+    # Create the sum of sinusoids.
     s = np.zeros(Ntot)
-
-    # Create the sinusoids
-#    np.random.seed(15)
+    #np.random.seed(15)
     for k in range(Ns):
-        f = np.round(np.random.uniform()*Ntot) / Ntot
+        f = np.round(np.random.uniform() * Ntot) / Ntot
         amp = Amin + np.random.uniform() * (Amax-Amin)
-        s += amp * np.sin( 2 * np.pi * f * np.arange(Ntot))
+        s += amp * np.sin(2 * np.pi * f * np.arange(Ntot))
 
     return s, fs, Ntot, Nmes
 
@@ -172,21 +171,17 @@ def signal(filename):
     fs : float
         The signal sampling frequency.
     """
-
-    # Open Hierarchical Data Format (HDF)
+    # Open Hierarchical Data Format (HDF).
     f = h5py.File(filename)
 
-    # Show datasets or groups
+    # Show datasets or groups.
     #f.values()
 
-    # Get signal
+    # Get signal and sampling frequency.
     s = f.get('signal')
-
-    # Get sampling frequency
     fs = f.get('fs').value
 
     print('Sampling frequency : %d MHz, # samples : %d' % (fs/1e6, len(s)))
-
     return s, fs
 
 
@@ -197,10 +192,10 @@ def calmix():
     recover the information from the measurement and compare it to the ground
     truth. We know that the signal is sparse in the Fourier domain.
     """
-    # Signal and sampling frequency
+    # Signal and sampling frequency.
     s, fs = signal('2-calmix.hdf5')
 
-    # Percentage of measured data
+    # Percentage of measured data.
     Pmes = 0.05
     Ntot = len(s)
     Nmes = int(Ntot * Pmes)
@@ -214,10 +209,10 @@ def myoglobin():
     Fourier domain and identify the diracs composing the signal. We know that
     it is sparse in the Fourier domain. We have no ground truth.
     """
-    # Signal and sampling frequency
+    # Signal and sampling frequency.
     s, fs = signal('1-myoglobin_simplified.hdf5')
 
-    # Percentage of measured data
+    # Percentage of measured data.
     Pmes = 0.05
     Nmes = len(s)
     Ntot = int(Nmes / Pmes)
@@ -225,16 +220,16 @@ def myoglobin():
     return s, fs, Ntot, Nmes
 
 
-###  Main script  ###
+  #####  Main script  #####
 
 
 if pyunlocbox.__version__ < '0.2.1':
-    raise Exception('PyUNLocBox package older than 0.2.1 contains a bug that '
+    raise Exception('PyUNLocBox packages older than 0.2.1 contain a bug that '
                     'prevent the correct execution of this script. Current '
                     'version is %s' % (pyunlocbox.__version__,))
 
 
-###  Parameters  ###
+  #####  Parameters  #####
 
 
 dataset       = 'myoglobin'      # Dataset: artificial, calmix or myoglobin
@@ -246,166 +241,155 @@ sigma         = 1.0           # Noise level
 save_results  = True          # Save or interactively show the results
 
 
-###  Signal creation  ###
+  #####  Signal creation  #####
 
 
+# Get the signal (from a stored dataset or synthesize one).
 print('Dataset : %s' % (dataset,))
 exec('s, fs, Ntot, Nmes = %s()' % (dataset,))
 print('%d measures out of %d samples (%d%%)' % (Nmes, Ntot, 100.*Nmes/Ntot))
 
-# Ground truth if any (before adding noise)
+# Ground truth if any (before adding noise).
 if len(s) == Ntot:
     sf = np.fft.rfft(s)
 else:
     sf = None
 
-# Add some white noise (before creating the measurements)
+# Add some white noise (before creating the measurements).
 s, epsilon = addnoise(s, Nmes, sigma)
 
-# Masking matrix
-mask = np.zeros(Ntot)
-mask[:Nmes] = 1
-
-# Low resolution measurements : s or part of s if s is the ground truth
+# Low resolution measurements : s or part of s if s is the ground truth.
 yl = s[:Nmes]
 ylf = np.fft.rfft(yl)
 
-# High resolution measurements : yl followed by zeros
-# This is to increase the frequency resolution in Fourier
+# High resolution measurements : yl followed by zeros.
+# This is to increase the frequency resolution in Fourier.
 yh = np.zeros(Ntot)
 yh[:Nmes] = yl
 yhf = np.fft.rfft(yh)
 
 
-###  Problem 1 : Sparse coding  ###
+  #####  Step 1 : Sparse coding  #####
 
 
-# Data fidelity term
+# Masking matrix.
+mask = np.zeros(Ntot, dtype=bool)
+mask[:Nmes] = True
+
+# Data fidelity term : close to measurements.
 A = lambda x: mask * np.fft.irfft(x)
 At = lambda x: np.fft.rfft(mask * x)
 f1 = pyunlocbox.functions.proj_b2(A=A, At=At, y=yh, nu=1, tight=True,
                                   epsilon=epsilon)
 
-# Prior term
+# Prior term : sparse in the Fourier domain.
 f2 = pyunlocbox.functions.norm_l1(lambda_=prior_weight)
 
-# Solver : Douglas-Rachford as we have no gradient
+# Solver : Douglas-Rachford as we have no gradient.
 solver = pyunlocbox.solvers.douglas_rachford(step=np.max(np.abs(yhf)))
 
-# Solve the problem
+# Solve the problem.
 x0 = np.zeros(np.shape(yhf))
 sol1 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit1,
                                 verbosity='LOW')
 
-# Non-zero values indicate peaks
-ind1, N = nonzero(sol1['sol'])
-print('Number of non-zero coefficients (step 1) : %d' % (N,))
+
+  #####  Step 2 : Aggregates grouping into diracs  #####
 
 
-###  Problem 2 : Regroup aggregates into diracs  ###
+t2start = time.time()
 
+# Non-zero coefficients indicate potential diracs.
+ind1, Npot = nonzero(sol1['sol'])
 
-# As the solution is sparse, the diracs (actually aggregates) are separated by
-# zeros. We group together individual chunks of non-zero bins.
+# Transitions from non-aggregate to aggregate (filled with ones).
+# ind[:-1] 0 0 0 1 1 1 1 0 0
+# ind[1:]  0 0 1 1 1 1 0 0 0
+# trans    0 0 1 0 0 0 1 0 0
+trans = ind1[:-1] != ind1[1:]
 
-tstart_step2 = time.time()
-
-# Transitions from non-aggregate to aggregate
-# ind[0:-1] 0 0 1 1 1 1 0 0
-# ind[1:]   0 1 1 1 1 0 0 0
-# trans     0 1 0 0 0 1 0 0
-trans = ind1[0:-1] != ind1[1:]
-
-# Indices of transitions : starts and ends
+# Indices of transitions : starts and ends.
 nz = np.nonzero(trans)[0]
 starts = nz[0::2]
 ends = nz[1::2]
 
-Npeaks = np.sum(trans) / 2.
+Ndiracs = np.sum(trans) / 2.
 
-ind2 = np.zeros(np.shape(ind1))
-
-# Find the maximum of each aggregate, where the dirac most probably sits
-for k in range(int(Npeaks)):
+# Find the maximum of each aggregate, where the dirac most probably sits.
+ind2 = np.zeros(np.shape(ind1), dtype=bool)
+for k in range(int(Ndiracs)):
     idx = np.argmax(np.abs(sol1['sol'][starts[k]:ends[k]]))
     idx += starts[k]
-    ind2[idx] = 1
+    ind2[idx] = True
 
-if not len(starts) == len(ends) == np.sum(ind2) == Npeaks:
-    raise Exception('Aggregates grouping failed')
+if not len(starts) == len(ends) == np.sum(ind2) == Ndiracs:
+    raise Exception('Aggregates grouping failed.')
 
-print('Number of non-zero coefficients (step 2) : %d' % (Npeaks,))
+print('Step 2 : %d identified diracs out of %d non-zero coefficients before '
+      'aggregates grouping (%d%%)' % (Ndiracs, Npot, 100.*Ndiracs/Npot))
 
-time_step2 = time.time() - tstart_step2
-
-
-###  Problem 3 : Estimate dirac amplitudes through linear regression  ###
+t2 = time.time() - t2start
 
 
-# Now that we have the indices of the diracs, we can force the other
-# coefficients to zero and minimize the L2-norm by gradient descent with
-# forward-backward. This is a linear regression problem with a constraint.
+  #####  Step 3 : Dirac amplitudes estimation through linear regression  #####
 
-# New problem : argmin_x || M F^-1 x - y ||_2^2  s.t.  x[ind] = 0
-
-# This tries to approach the measurements with the allowed frequency bins.
-# It'll only be useful if the bins are the right ones.
-# If there is too much of them, it'll simply retrieve the measurements.
-
-# Gradient descent under constraint with forward-backward
-solver = pyunlocbox.solvers.forward_backward()
 
 # Data fidelity term is the same than before, but expressed as a function
-# to minimize instead of a constraint
+# to minimize instead of a constraint.
 f1 = pyunlocbox.functions.norm_l2(A=A, At=At, y=yh)
 
-# The prior is the indices who can be different than 0. The proximal
-# operator is a projection on the constraint set.
+# The prior (a constraint) is a list of indices that can be non-zero. Its
+# proximal operator is a projection on the set that verifies the constraint.
 f2 = pyunlocbox.functions.func()
 f2._eval = lambda x: 0
 f2._prox = lambda x, T: ind2 * x
 
-# Start from zero or last solution
+# Gradient descent under constraint with forward-backward.
+solver = pyunlocbox.solvers.forward_backward()
+
+# Start from zero or last solution.
 x0 = np.zeros(np.shape(yhf))
 #x0 = sol1['sol']
 
-# Solve the problem
+# Solve the problem.
 sol2 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol,
                                 maxit=maxit2, verbosity='LOW')
 
-# Non-zero values indicate peaks
-ind2, N = nonzero(sol2['sol'])
-print('Number of non-zero coefficients (step 3) : %d' % (N,))
+# Non-zero coefficients indicate recognized diracs.
+ind3, N = nonzero(sol2['sol'])
+if N != Ndiracs:
+    raise Exception('Constraint on diracs positions not respected.')
 
 
-###  Show results  ###
+###  Results  ###
 
-# Verify the exactitude of the algorithm on the artificial dataset
+
+# Verify the exactitude of the algorithm on the artificial dataset.
 if dataset is 'artificial':
     inds = np.abs(sf) >= np.max(np.abs(sf)/2)
-    if not np.array_equal(inds,ind2):
-        print('Number of errors : %d' % (np.sum(inds != ind2),))
+    if not np.array_equal(inds, ind3):
+        print('Number of errors : %d' % (np.sum(inds != ind3),))
         print('    Ground truth : %s' % (str(np.nonzero(inds)[0]),))
         print('    Solution : %s' % (str(np.nonzero(ind2)[0]),))
 
-# Time measurements
+# Time measurements.
 print('Elapsed time :')
 print('    Step 1 : %.2f seconds' % (sol1['time'],))
-print('    Step 2 : %.2f seconds' % (time_step2,))
+print('    Step 2 : %.2f seconds' % (t2,))
 print('    Step 3 : %.2f seconds' % (sol2['time'],))
-print('    Total : %.2f seconds' % (sol1['time'] + time_step2 + sol2['time'],))
+print('    Total  : %.2f seconds' % (sol1['time'] + t2 + sol2['time'],))
 
-# Full view
+# Full view.
 filename = dataset+'_full' if save_results else None
 plot(sf, ylf, yhf, sol1, sol2, fs, None, filename)
 
-# Partially zoomed view
+# Partially zoomed view.
 if dataset is 'calmix':
     xlim = (160e3, 300e3)
 elif dataset is 'myoglobin':
     xlim = (938.5e3, 941.5e3)
 elif dataset is 'artificial':
-    # Show the third (or less) dirac if it exists
+    # Show the third (or less) dirac if it exists.
     Ndirac = min(N, 2)
     if Ndirac != 0:
         width = 80
@@ -421,7 +405,7 @@ if xlim:
     filename = dataset+'_zoom1' if save_results else None
     plot(sf, ylf, yhf, sol1, sol2, fs, xlim, filename)
 
-# Completely zoomed view
+# Completely zoomed view.
 if dataset is 'calmix':
     xlim = (245.05e3, 245.55e3)
 elif dataset is 'myoglobin':
@@ -432,6 +416,6 @@ if xlim:
     filename = dataset+'_zoom2' if save_results else None
     plot(sf, ylf, yhf, sol1, sol2, fs, xlim, filename)
 
-# Interactively show results if not saved to figures
+# Interactively show results if not saved to figures.
 if not save_results:
     plt.show()
