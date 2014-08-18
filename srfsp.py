@@ -121,6 +121,7 @@ def artificial():
     s = np.zeros(Ntot)
 
     # Create the sinusoids
+    np.random.seed(15)
     for k in range(Ns):
         f = np.round(np.random.uniform()*Ntot) / Ntot
         amp = Amin + np.random.uniform() * (Amax-Amin)
