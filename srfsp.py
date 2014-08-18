@@ -223,7 +223,7 @@ if pyunlocbox.__version__ < '0.2.1':
 ###  Parameters  ###
 
 
-dataset       = 'calmix'      # Dataset: artificial, calmix or myoglobin
+dataset       = 'myoglobin'      # Dataset: artificial, calmix or myoglobin
 maxit1        = 50            # Maximum number of iterations for sparse coding
 maxit2        = 30            #                                  regression
 tol           = 10e-10        # Tolerance to stop iterating
@@ -281,7 +281,7 @@ sol1 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit1,
 
 # Non-zero values indicate peaks
 ind1, N = nonzero(sol1['sol'])
-print('Number of non-zero coefficients : %d' % (N,))
+print('Number of non-zero coefficients (step 1) : %d' % (N,))
 
 
 ###  Problem 2 : Regroup aggregates into diracs  ###
@@ -316,7 +316,7 @@ for k in range(int(Npeaks)):
 if not len(starts) == len(ends) == np.sum(ind2) == Npeaks:
     raise Exception('Aggregates grouping failed')
 
-print('Number of non-zero coefficients : %d' % (Npeaks,))
+print('Number of non-zero coefficients (step 2) : %d' % (Npeaks,))
 
 time_step2 = time.time() - tstart_step2
 
@@ -357,7 +357,7 @@ sol2 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol,
 
 # Non-zero values indicate peaks
 ind2, N = nonzero(sol2['sol'])
-print('Number of non-zero coefficients : %d' % (N,))
+print('Number of non-zero coefficients (step 3) : %d' % (N,))
 
 
 ###  Show results  ###
