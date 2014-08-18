@@ -363,13 +363,14 @@ print('Number of non-zero coefficients : %d' % (N,))
 ###  Show results  ###
 
 # Verify the exactitude of the algorithm on the artificial dataset
-inds = np.abs(sf) >= np.max(np.abs(sf)/2)
-if not np.array_equal(inds,ind2):
-    # Error goes by pair
-    Nerr = np.sum(inds != ind2) / 2
-    print('Number of errors : %d' % (Nerr,))
-    print('    Ground truth : %s' % (str(np.nonzero(inds)[0]),))
-    print('    Solution : %s' % (str(np.nonzero(ind2)[0]),))
+if dataset is 'artificial':
+    inds = np.abs(sf) >= np.max(np.abs(sf)/2)
+    if not np.array_equal(inds,ind2):
+        # Error goes by pair
+        Nerr = np.sum(inds != ind2) / 2
+        print('Number of errors : %d' % (Nerr,))
+        print('    Ground truth : %s' % (str(np.nonzero(inds)[0]),))
+        print('    Solution : %s' % (str(np.nonzero(ind2)[0]),))
 
 # Time measurements
 print('Elapsed time :')
