@@ -235,7 +235,8 @@ if pyunlocbox.__version__ < '0.2.1':
 dataset       = 'calmix'      # Dataset: artificial, calmix or myoglobin.
 maxit1        = 50            # Maximum number of iterations for sparse coding.
 maxit2        = 50            #                                  regression.
-tol           = 1e-10         # Tolerance to stop iterating for sparse coding.
+tol1          = 1e-10         # Tolerance to stop iterating for sparse coding.
+tol2          = 1e-3          #                                 regression.
 prior_weight  = 1.0           # Weight of the prior term.
 sigma         = 1.0           # Noise level.
 save_results  = True          # Save or interactively show the results.
@@ -290,7 +291,7 @@ solver = pyunlocbox.solvers.douglas_rachford(step=np.max(np.abs(yhf)))
 
 # Solve the problem.
 x0 = np.zeros(np.shape(yhf))
-sol1 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol, maxit=maxit1,
+sol1 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol1, maxit=maxit1,
                                 verbosity='LOW')
 
 
@@ -352,7 +353,7 @@ x0 = np.zeros(np.shape(yhf))
 #x0 = sol1['sol']
 
 # Solve the problem.
-sol2 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol,
+sol2 = pyunlocbox.solvers.solve([f1, f2], x0, solver, rtol=tol2,
                                 maxit=maxit2, verbosity='LOW')
 
 # Non-zero coefficients indicate recognized diracs.
