@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
@@ -289,6 +290,8 @@ print('Number of non-zero coefficients : %d' % (N,))
 # As the solution is sparse, the diracs (actually aggregates) are separated by
 # zeros. We group together individual chunks of non-zero bins.
 
+tstart_step2 = time.time()
+
 # Transitions from non-aggregate to aggregate
 # ind[0:-1] 0 0 1 1 1 1 0 0
 # ind[1:]   0 1 1 1 1 0 0 0
@@ -314,6 +317,8 @@ if not len(starts) == len(ends) == np.sum(ind2) == Npeaks:
     raise Exception('Aggregates grouping failed')
 
 print('Number of non-zero coefficients : %d' % (Npeaks,))
+
+time_step2 = time.time() - tstart_step2
 
 
 ###  Problem 3 : Estimate dirac amplitudes through linear regression  ###
@@ -365,6 +370,13 @@ if not np.array_equal(inds,ind2):
     print('Number of errors : %d' % (Nerr,))
     print('    Ground truth : %s' % (str(np.nonzero(inds)[0]),))
     print('    Solution : %s' % (str(np.nonzero(ind2)[0]),))
+
+# Time measurements
+print('Elapsed time :')
+print('    Step 1 : %.2f seconds' % (sol1['time'],))
+print('    Step 2 : %.2f seconds' % (time_step2,))
+print('    Step 3 : %.2f seconds' % (sol2['time'],))
+print('    Total : %.2f seconds' % (sol1['time'] + time_step2 + sol2['time'],))
 
 # Full view
 filename = dataset+'_full' if save_results else None
