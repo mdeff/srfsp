@@ -96,6 +96,39 @@ def plot(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
 #        plt.savefig(filename + '.pdf')
 
 
+def addnoise(s, Nmes, sigma=1):
+    """
+    Add some white noise to a signal.
+
+    Parameters
+    ----------
+    s : array_like
+        Noiseless signal.
+    Nmes : int
+        Number of measured samples. Used to compute epsilon, as the algorithm
+        only 'sees' the noise on the measurements.
+    sigma : float
+        Noise level.
+
+    Returns
+    -------
+    s : ndarray
+        Noisy signal.
+    epsilon : float
+        Radius of the L2-ball.
+    """
+    sn = s + np.random.normal(0, sigma, len(s))
+
+    # We want our estimation to be close to the measures up to the noise level.
+    # y = x + epsilon  -->  || Ax - y ||_2 <= || epsilon ||_2
+    # Var(eps) = E(eps^2) - E(eps)^2
+    # E( ||eps||_2 ) = sqrt( E( ||eps||_2^2 )) = sqrt( sum( E( eps_i^2 ))) = sqrt( N*Var(eps))
+    # 1.1 is meant to leave some room. 1.0 works best for high noise level.
+    epsilon = 1.0 * np.sqrt(Nmes) * sigma
+
+    return sn, epsilon
+
+
 def artificial():
     """
     Artificial signal composed by a sum of sine waves.
@@ -111,13 +144,6 @@ def artificial():
     Nmes = int(fs * T)      # Number of measured samples
     Ntot = int(fs * Ttot)   # Total number of samples
 
-    # We want our estimation to be close to the measures up to the noise level.
-    # y = x + epsilon  -->  || Ax - y ||_2 <= || epsilon ||_2
-    # Var(eps) = E(eps^2) - E(eps)^2
-    # E( ||eps||_2 ) = sqrt( E( ||eps||_2^2 )) = sqrt( sum( E( eps_i^2 ))) = sqrt( N*Var(eps))
-    # 1.1 is meant to leave some room. 1.0 works best for high noise level.
-    epsilon = 1.0 * np.sqrt(Nmes) * sigma  # Radius of the B2-ball
-
     s = np.zeros(Ntot)
 
     # Create the sinusoids
@@ -127,10 +153,7 @@ def artificial():
         amp = Amin + np.random.uniform() * (Amax-Amin)
         s += amp * np.sin( 2 * np.pi * f * np.arange(Ntot))
 
-    # Add noise
-    s += np.random.normal(0, sigma, Ntot)
-
-    return s, fs, Ntot, Nmes, epsilon
+    return s, fs, Ntot, Nmes
 
 
 def signal(filename):
@@ -182,10 +205,7 @@ def calmix():
     Ntot = len(s)
     Nmes = int(Ntot * Pmes)
 
-    # Radius of the B2-ball
-    epsilon = 0
-
-    return s, fs, Ntot, Nmes, epsilon
+    return s, fs, Ntot, Nmes
 
 
 def myoglobin():
@@ -202,11 +222,7 @@ def myoglobin():
     Nmes = len(s)
     Ntot = int(Nmes / Pmes)
 
-    # Radius of the B2-ball
-    epsilon = 0
-#    epsilon = 1.1 * np.sqrt(Ntot) * 0.001
-
-    return s, fs, Ntot, Nmes, epsilon
+    return s, fs, Ntot, Nmes
 
 
 ###  Main script  ###
@@ -226,6 +242,7 @@ maxit1        = 50            # Maximum number of iterations for sparse coding
 maxit2        = 30            #                                  regression
 tol           = 10e-10        # Tolerance to stop iterating
 prior_weight  = 1             # Weight of the prior term. Data fidelity has 1.
+sigma         = 1.0           # Noise level
 save_results  = True          # Save or interactively show the results
 
 
@@ -233,8 +250,17 @@ save_results  = True          # Save or interactively show the results
 
 
 print('Dataset : %s' % (dataset,))
-exec('s, fs, Ntot, Nmes, epsilon = %s()' % (dataset,))
+exec('s, fs, Ntot, Nmes = %s()' % (dataset,))
 print('%d measures out of %d samples (%d%%)' % (Nmes, Ntot, 100.*Nmes/Ntot))
+
+# Ground truth if any (before adding noise)
+if len(s) == Ntot:
+    sf = np.fft.rfft(s)
+else:
+    sf = None
+
+# Add some white noise (before creating the measurements)
+s, epsilon = addnoise(s, Nmes, sigma)
 
 # Masking matrix
 mask = np.zeros(Ntot)
@@ -249,12 +275,6 @@ ylf = np.fft.rfft(yl)
 yh = np.zeros(Ntot)
 yh[:Nmes] = yl
 yhf = np.fft.rfft(yh)
-
-# Ground truth if any
-if len(s) == Ntot:
-    sf = np.fft.rfft(s)
-else:
-    sf = None
 
 
 ###  Problem 1 : Sparse coding  ###
