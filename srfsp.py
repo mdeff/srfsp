@@ -10,34 +10,55 @@ import pyunlocbox
 
 def nonzero(s):
     """
-    Return an array where 1 indicates a non-zero element and 0 a zero element.
+    Return an array where ``True`` indicates a non-zero element and ``False`` a
+    zero element.
+
+    Parameters:
+    -----------
+    s : array_like
+        Input signal.
+
+    Returns
+    -------
+    ind : ndarray of bool
+        ind[k] == s[k] != 0
+    N : int
+        Number of non-zero elements.
+
+    Examples
+    --------
+    >>> ind, N = nonzero([0,1,2,3,0])
+    >>> ind
+    array([False,  True,  True,  True, False], dtype=bool)
+    >>> N
+    3
     """
     ind = np.abs(s) != 0
     N = np.sum(ind)
     return ind, N
 
 
-def plotfftreal(s, fs, title, xlim=None, amp='abs'):
+def plotfftreal(sf, fs, title, xlim=None, amp='abs'):
     """
     Plot the Fourier transform in a nice way.
 
     Parameters
     ----------
-    s : array_like
+    sf : array_like
         Fourier transform of a signal.
     fs : float
         Sampling frequency.
     title : string
         Title of the graph.
-    xlim : tuple
-        X-axis limits.
-    amp : {'abs', 'real', 'imag'}
-        Type of amplitude to plot.
+    xlim : tuple of floats, optional
+        X-axis limits. Default is automatic.
+    amp : {'abs', 'real', 'imag'}, optional
+        Type of amplitude to plot. Default is abs.
     """
-    N = len(s)
+    N = len(sf)
     w = np.linspace(0, fs-fs/N, N)
 
-    exec('y = np.%s(s)' % (amp,))
+    exec('y = np.%s(sf)' % (amp,))
 
     plt.plot(w, y, 'b.-')
 
@@ -56,8 +77,30 @@ def plotfftreal(s, fs, title, xlim=None, amp='abs'):
         plt.xlim(xlim)
 
 
-def plot(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
+def plotresults(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
+    """
+    Plot the results.
 
+    Parameters
+    ----------
+    sf : array_like
+        Ground truth in Fourier.
+    ylf : array_like
+        Low resolution measurements.
+    yhf : array_like
+        High resolution measurements.
+    sol1 : array_like
+        Solution after the first optimization step.
+    sol2 : array_like
+        Solution after the second optimization step.
+    fs : float
+        Sampling frequency.
+    xlim : tuple of floats, optional
+        X-axis limits. Default is automatic.
+    filename : string, optional
+        Name of the saved figure file in the current directory or path to it.
+        Nothing is saved if None (default).
+    """
     # Set figure size when saving.
     if filename:
         plt.figure(figsize=(20,10), dpi=200)
@@ -96,7 +139,7 @@ def plot(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
         #plt.savefig(filename + '.pdf')
 
 
-def addnoise(s, Nmes, sigma=1):
+def addnoise(s, Nmes, sigma=1.0):
     """
     Add some white noise to a signal.
 
@@ -107,8 +150,8 @@ def addnoise(s, Nmes, sigma=1):
     Nmes : int
         Number of measured samples. Used to compute epsilon, as the algorithm
         only 'sees' the noise on the measurements.
-    sigma : float
-        Noise level.
+    sigma : float, optional
+        Noise level. Default is 1.
 
     Returns
     -------
@@ -119,11 +162,20 @@ def addnoise(s, Nmes, sigma=1):
 
     Notes
     -----
-    We want our estimation to be close to the measures up to the noise level.
-    y = x + epsilon  -->  || Ax - y ||_2 <= || epsilon ||_2
-    Var(eps) = E(eps^2) - E(eps)^2
-    E( ||eps||_2 ) = sqrt( E( ||eps||_2^2 )) = sqrt( sum( E( eps_i^2 ))) = sqrt( N*Var(eps))
-    1.1 is meant to leave some room. 1.0 works best for high noise level.
+    The radius of the L2-ball, `epsilon`, is a measure of the confidence we
+    have in our measurements. Smaller is the radius, closer to the measurements
+    we will be. A too small radius can lead to over-fitting. A too big radius
+    will cause the algorithm to go away from the measurements.
+
+    The ideal is an estimation that is close to the measures up to the noise
+    level. The noisy signal y is composed by the sum of the noiseless signal x
+    and the white noise sigma : y = x + sigma. We thus want
+    ||Ax-y||_2 <= ||sigma||_2. An estimation of it is :
+    E(||sigma||_2) = sqrt(E(||sigma||_2^2)) = sqrt(sum(E(sigma_i^2)))
+    As Var(sigma) = E(sigma^2) - E(sigma)^2 and E(sigma)^2 = 0, we have :
+    E(||sigma||_2) = sqrt(N * Var(eps))
+    The coefficient 1.1 is meant to leave some room, but 1.0 works best for
+    high noise levels.
     """
     sn = s + np.random.normal(0, sigma, len(s))
     epsilon = 1.0 * np.sqrt(Nmes) * sigma
@@ -205,7 +257,7 @@ def calmix():
 
 def myoglobin():
     """
-    A low resolution signal. Our task is to improve its resolution in the
+    A low resolution signal. Our task is to increase its resolution in the
     Fourier domain and identify the diracs composing the signal. We know that
     it is sparse in the Fourier domain. We have no ground truth.
     """
@@ -382,7 +434,7 @@ print('    Total  : %.2f seconds' % (sol1['time'] + t2 + sol2['time'],))
 
 # Full view.
 filename = dataset+'_full' if save_results else None
-plot(sf, ylf, yhf, sol1, sol2, fs, None, filename)
+plotresults(sf, ylf, yhf, sol1, sol2, fs, None, filename)
 
 # Partially zoomed view.
 if dataset is 'calmix':
@@ -404,7 +456,7 @@ else:
     xlim = None
 if xlim:
     filename = dataset+'_zoom1' if save_results else None
-    plot(sf, ylf, yhf, sol1, sol2, fs, xlim, filename)
+    plotresults(sf, ylf, yhf, sol1, sol2, fs, xlim, filename)
 
 # Completely zoomed view.
 if dataset is 'calmix':
@@ -415,7 +467,7 @@ else:
     xlim = None
 if xlim:
     filename = dataset+'_zoom2' if save_results else None
-    plot(sf, ylf, yhf, sol1, sol2, fs, xlim, filename)
+    plotresults(sf, ylf, yhf, sol1, sol2, fs, xlim, filename)
 
 # Interactively show results if not saved to figures.
 if not save_results:
