@@ -232,13 +232,13 @@ if pyunlocbox.__version__ < '0.2.1':
   #####  Parameters  #####
 
 
-dataset       = 'myoglobin'      # Dataset: artificial, calmix or myoglobin
-maxit1        = 50            # Maximum number of iterations for sparse coding
-maxit2        = 30            #                                  regression
-tol           = 10e-10        # Tolerance to stop iterating
-prior_weight  = 1             # Weight of the prior term. Data fidelity has 1.
-sigma         = 1.0           # Noise level
-save_results  = True          # Save or interactively show the results
+dataset       = 'calmix'      # Dataset: artificial, calmix or myoglobin.
+maxit1        = 50            # Maximum number of iterations for sparse coding.
+maxit2        = 50            #                                  regression.
+tol           = 1e-10         # Tolerance to stop iterating for sparse coding.
+prior_weight  = 1.0           # Weight of the prior term.
+sigma         = 1.0           # Noise level.
+save_results  = True          # Save or interactively show the results.
 
 
   #####  Signal creation  #####
