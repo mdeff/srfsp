@@ -86,10 +86,10 @@ def plot(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
     plotfftreal(sol2['sol'], fs, title, xlim)
 
     plt.subplot(2,3,6)
-    plt.plot(sol2['objective'])
-    plt.title('Objective function')
+    plt.semilogy(sol2['objective'], 'b.-')
     plt.grid(True)
-    plt.ticklabel_format(style='sci', scilimits=(3,3), axis='y')
+    plt.title('Objective function (linear regression)')
+    plt.xlabel('Iteration number')
 
     if filename:
         plt.savefig(filename + '.png')
@@ -225,7 +225,7 @@ if pyunlocbox.__version__ < '0.2.1':
 
 dataset       = 'calmix'      # Dataset: artificial, calmix or myoglobin
 maxit1        = 50            # Maximum number of iterations for sparse coding
-maxit2        = 15            #                                  regression
+maxit2        = 30            #                                  regression
 tol           = 10e-10        # Tolerance to stop iterating
 prior_weight  = 1             # Weight of the prior term. Data fidelity has 1.
 save_results  = True          # Save or interactively show the results
