@@ -115,13 +115,13 @@ def artificial():
     # y = x + epsilon  -->  || Ax - y ||_2 <= || epsilon ||_2
     # Var(eps) = E(eps^2) - E(eps)^2
     # E( ||eps||_2 ) = sqrt( E( ||eps||_2^2 )) = sqrt( sum( E( eps_i^2 ))) = sqrt( N*Var(eps))
-    # 1.1 is meant to leave some room.
-    epsilon = 1.1 * np.sqrt(Nmes) * sigma  # Radius of the B2-ball
+    # 1.1 is meant to leave some room. 1.0 works best for high noise level.
+    epsilon = 1.0 * np.sqrt(Nmes) * sigma  # Radius of the B2-ball
 
     s = np.zeros(Ntot)
 
     # Create the sinusoids
-    np.random.seed(15)
+#    np.random.seed(15)
     for k in range(Ns):
         f = np.round(np.random.uniform()*Ntot) / Ntot
         amp = Amin + np.random.uniform() * (Amax-Amin)
