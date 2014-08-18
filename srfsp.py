@@ -128,12 +128,9 @@ def artificial():
         s += amp * np.sin( 2 * np.pi * f * np.arange(Ntot))
 
     # Add noise
-    sn = s + sigma * np.random.normal()
+    s += np.random.normal(0, sigma, Ntot)
 
-    # No offset, otherwise it can create an additional dirac at 0
-    sn -= np.mean(sn)
-
-    return sn, fs, Ntot, Nmes, epsilon
+    return s, fs, Ntot, Nmes, epsilon
 
 
 def signal(filename):
