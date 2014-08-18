@@ -213,7 +213,7 @@ def myoglobin():
     s, fs = signal('1-myoglobin_simplified.hdf5')
 
     # Percentage of measured data.
-    Pmes = 0.05
+    Pmes = 0.25
     Nmes = len(s)
     Ntot = int(Nmes / Pmes)
 
