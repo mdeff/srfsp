@@ -177,7 +177,10 @@ def addnoise(s, Nmes, sigma=1.0):
     The coefficient 1.1 is meant to leave some room, but 1.0 works best for
     high noise levels.
     """
-    sn = s + np.random.normal(0, sigma, len(s))
+    if sigma != 0:
+        sn = s + np.random.normal(0, sigma, len(s))
+    else:
+        sn = s
     epsilon = 1.0 * np.sqrt(Nmes) * sigma
     return sn, epsilon
 
