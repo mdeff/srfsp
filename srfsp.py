@@ -56,28 +56,30 @@ def plotfftreal(sf, fs, title, xlim=None, amp='abs'):
         Type of amplitude to plot. Default is abs.
     """
     N = len(sf)
-    w = np.linspace(0, fs-fs/N, N)
+    w = np.linspace(0, fs-fs/N, N) / 1000.
 
     exec('y = np.%s(sf)' % (amp,))
 
-    plt.plot(w, y, 'b.-')
+    # 100 samples in time --> 50 (freq) + 1 (DC) rfft samples
+    norm = (len(y) - 1) * 2
+    plt.plot(w, y/norm, 'b.-')
 
     plt.grid(True)
 
-    plt.xlabel('Frequency [Hz]')
+    plt.xlabel('Frequency [kHz]')
     plt.ylabel('Amplitude (%s)' % (amp,))
 
-    _, N = nonzero(s)
+    _, N = nonzero(sf)
     plt.title('%s (%d)' % (title, N))
 
     # Force axis numbers to be printed in scientific notation.
-    plt.ticklabel_format(style='sci', scilimits=(3,3), axis='both')
+#    plt.ticklabel_format(style='sci', scilimits=(3,3), axis='both')
 
     if xlim:
-        plt.xlim(xlim)
+        plt.xlim(np.array(xlim) / 1000.)
 
 
-def plotresults(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
+def plotresults(sf, ylf, yhf, sol1, sol2, fs, yl, xlim=None, filename=None):
     """
     Plot the results.
 
@@ -128,11 +130,20 @@ def plotresults(sf, ylf, yhf, sol1, sol2, fs, xlim=None, filename=None):
     title = 'Recovered 2 (linear regression)'
     plotfftreal(sol2['sol'], fs, title, xlim)
 
-    plt.subplot(2,3,6)
-    plt.semilogy(sol2['objective'], 'b.-')
-    plt.grid(True)
-    plt.title('Objective function (linear regression)')
-    plt.xlabel('Iteration number')
+    if yl is not None:
+        plt.subplot(2,3,6)
+        plt.plot(np.arange(len(yl))/fs*1000., yl)
+        plt.grid(True)
+        plt.title('Measurements')
+        plt.xlabel('Time [ms]')
+        plt.ylabel('Amplitude')
+
+    else:
+        plt.subplot(2,3,6)
+        plt.semilogy(sol2['objective'], 'b.-')
+        plt.grid(True)
+        plt.title('Objective function (linear regression)')
+        plt.xlabel('Iteration number')
 
     if filename:
         plt.savefig(filename + '.png')
@@ -267,10 +278,12 @@ def myoglobin():
     # Signal and sampling frequency.
     s, fs = signal('1-myoglobin_simplified.hdf5')
 
-    # Percentage of measured data.
-    Pmes = 0.25
-    Nmes = len(s)
-    Ntot = int(Nmes / Pmes)
+    Pmes = 0.24  # Percentage of measured data.
+    Fsr = 5 / Pmes    # Super-resolution factor.
+
+    Ngold = len(s)
+    Nmes = int(Ngold * Pmes)
+    Ntot = int(Nmes * Fsr)
 
     return s, fs, Ntot, Nmes
 
@@ -287,7 +300,7 @@ if pyunlocbox.__version__ < '0.2.1':
   #####  Parameters  #####
 
 
-dataset       = 'calmix'      # Dataset: artificial, calmix or myoglobin.
+dataset       = 'myoglobin'      # Dataset: artificial, calmix or myoglobin.
 maxit1        = 50            # Maximum number of iterations for sparse coding.
 maxit2        = 50            #                                  regression.
 tol1          = 1e-10         # Tolerance to stop iterating for sparse coding.
@@ -303,13 +316,14 @@ save_results  = True          # Save or interactively show the results.
 # Get the signal (from a stored dataset or synthesize one).
 print('Dataset : %s' % (dataset,))
 exec('s, fs, Ntot, Nmes = %s()' % (dataset,))
-print('%d measures out of %d samples (%d%%)' % (Nmes, Ntot, 100.*Nmes/Ntot))
+print('Transient : %d measures out of %d samples (%d%%)' % (Nmes, len(s), 100.*Nmes/len(s)))
+print('Super-resolution factor : %.1f (from %d samples to %d)' % (float(Ntot)/Nmes, Nmes, Ntot))
 
 # Ground truth if any (before adding noise).
-if len(s) == Ntot:
-    sf = np.fft.rfft(s)
-else:
-    sf = None
+#if len(s) == Ntot:
+sf = np.fft.rfft(s)
+#else:
+#    sf = None
 
 # Add some white noise (before creating the measurements).
 s, epsilon = addnoise(s, Nmes, sigma)
@@ -437,7 +451,7 @@ print('    Total  : %.2f seconds' % (sol1['time'] + t2 + sol2['time'],))
 
 # Full view.
 filename = dataset+'_full' if save_results else None
-plotresults(sf, ylf, yhf, sol1, sol2, fs, None, filename)
+plotresults(sf, ylf, yhf, sol1, sol2, fs, yl, None, filename)
 
 # Partially zoomed view.
 if dataset is 'calmix':
@@ -459,7 +473,7 @@ else:
     xlim = None
 if xlim:
     filename = dataset+'_zoom1' if save_results else None
-    plotresults(sf, ylf, yhf, sol1, sol2, fs, xlim, filename)
+    plotresults(sf, ylf, yhf, sol1, sol2, fs, yl, xlim, filename)
 
 # Completely zoomed view.
 if dataset is 'calmix':
@@ -470,7 +484,7 @@ else:
     xlim = None
 if xlim:
     filename = dataset+'_zoom2' if save_results else None
-    plotresults(sf, ylf, yhf, sol1, sol2, fs, xlim, filename)
+    plotresults(sf, ylf, yhf, sol1, sol2, fs, yl, xlim, filename)
 
 # Interactively show results if not saved to figures.
 if not save_results:
