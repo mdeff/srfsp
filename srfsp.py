@@ -288,6 +288,22 @@ def myoglobin():
     return s, fs, Ntot, Nmes
 
 
+def subP():
+    # Signal and sampling frequency.
+    s, fs = signal('3-subP.hdf5')
+
+    Pmes = 0.24       # Percentage of measured data.
+    Fsr = 5 / Pmes    # Super-resolution factor.
+    Pmes = 1
+    Fsr = 1
+
+    Ngold = len(s)
+    Nmes = int(Ngold * Pmes)
+    Ntot = int(Nmes * Fsr)
+
+    return s, fs, Ntot, Nmes
+
+
   #####  Main script  #####
 
 
@@ -300,7 +316,7 @@ if pyunlocbox.__version__ < '0.2.1':
   #####  Parameters  #####
 
 
-dataset       = 'myoglobin'      # Dataset: artificial, calmix or myoglobin.
+dataset       = 'subP'      # Dataset: artificial, calmix, myoglobin or subP.
 maxit1        = 50            # Maximum number of iterations for sparse coding.
 maxit2        = 50            #                                  regression.
 tol1          = 1e-10         # Tolerance to stop iterating for sparse coding.
@@ -458,6 +474,8 @@ if dataset is 'calmix':
     xlim = (160e3, 300e3)
 elif dataset is 'myoglobin':
     xlim = (938.5e3, 941.5e3)
+elif dataset is 'subP':
+    xlim = (340.4e3, 341.6e3)
 elif dataset is 'artificial':
     # Show the third (or less) dirac if it exists.
     Ndirac = min(N, 2)
@@ -480,6 +498,8 @@ if dataset is 'calmix':
     xlim = (245.05e3, 245.55e3)
 elif dataset is 'myoglobin':
     xlim = (940.1e3, 940.45e3)
+elif dataset is 'subP':
+    xlim = (340.835e3, 340.850e3)
 else:
     xlim = None
 if xlim:
