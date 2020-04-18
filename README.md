@@ -1,5 +1,9 @@
 # srfsp: super-resolution for mass spectrometry
 
+[Michaël Defferrard](https://deff.ch).
+Supervized by [Nathanaël Perraudin](https://perraudin.info),
+[Yury Tsybin](https://www.linkedin.com/in/yury-tsybin-b243783).
+
 To reduce measurement time, the software of a spectrometer should be able to
 recover diracs (which identify the measured material) in a low-resolution
 Fourier spectrum. Shorter is the measurement, lower is the spectrum resolution.
@@ -27,3 +31,7 @@ Steps:
 * [numpy](http://www.numpy.org/): scientific computing
 * [matplotlib](http://matplotlib.org/): plotting
 * [h5py](http://www.h5py.org/): data storage
+
+## Resources
+
+* Slides: <https://deff.ch/srfsp_slides.pdf>
